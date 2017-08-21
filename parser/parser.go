@@ -88,3 +88,13 @@ func ParseTestCases(content string) (map[string][]map[string]string, error) {
 	}
 	return result, nil
 }
+
+// ParseConfig parses the config file in the json format to type object
+func ParseConfig(content string) (tester.Config, error) {
+	result := tester.Config{}
+	decoder := json.NewDecoder(strings.NewReader(content))
+	if err := decoder.Decode(&result); err != nil {
+		return result, err
+	}
+	return result, nil
+}

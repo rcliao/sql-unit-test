@@ -6,3 +6,11 @@ type Submission struct {
 	Index    int
 	Command  string
 }
+
+// Config for database connections
+type Config struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
+	Database string `json:"database"`
+	Host     string `json:"host"`
+}

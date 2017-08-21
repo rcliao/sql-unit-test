@@ -51,3 +51,32 @@ func TestParseTestCases(t *testing.T) {
 		t.Error("Expect test case to get correct age '21' but got '" + testCases["1"][0]["age"] + "'")
 	}
 }
+
+func TestParseConfig(t *testing.T) {
+	var content = `{
+	"username": "root",
+	"host": "localhost",
+	"database": "cs1222"
+}`
+	result, err := ParseConfig(content)
+
+	if err != nil {
+		t.Error("Having error parseing the json content", err)
+	}
+
+	if result.Username != "root" {
+		t.Error("Expect to get 'root' username but got '" + result.Username + "'")
+	}
+
+	if result.Password != "" {
+		t.Error("Expect to get '' password but got '" + result.Password + "'")
+	}
+
+	if result.Host != "localhost" {
+		t.Error("Expect to get 'localhost' host but got '" + result.Host + "'")
+	}
+
+	if result.Database != "cs1222" {
+		t.Error("Expect to get 'cs1222' host but got '" + result.Database + "'")
+	}
+}
