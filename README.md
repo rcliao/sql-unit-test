@@ -9,7 +9,7 @@ by `go get github.com/go-sql-driver/mysql` Assuming you are writing unit tests
 for MySQL.
 
 After installing the specific database driver, the other dependencies left is
-`config.json`, `testcase.json` and `submission.txt`.
+`config.json`, `testcase.json` and `submission.sql`.
 
 ### config.json
 
@@ -25,7 +25,7 @@ A sample of config.json can be found below:
 }
 ```
 
-### submission.txt0
+### submission.sql
 
 Submission defines the sql submission.
 
@@ -49,3 +49,8 @@ Test
     ]
 }
 ```
+
+## Ideas
+
+- [ ] Define setup and teardown life cycle
+- [ ] Add other SQL driver implementations

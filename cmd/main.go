@@ -5,6 +5,8 @@ import (
 	"flag"
 	"fmt"
 	"io/ioutil"
+	"reflect"
+	"strconv"
 
 	_ "github.com/go-sql-driver/mysql"
 
@@ -15,8 +17,8 @@ import (
 
 var (
 	configFilePath     = flag.String("config", "./config.json", "config.json filepath")
-	testCaseFilePath   = flag.String("textcase", "./testcase.json", "textcase.json filepath")
-	submissionFilePath = flag.String("submission", "./submission.txt", "submission.txt filepath")
+	testCaseFilePath   = flag.String("testcases", "./testcase.json", "testcase.json filepath")
+	submissionFilePath = flag.String("submission", "./submission.sql", "submission.txt filepath")
 )
 
 func main() {
@@ -26,11 +28,11 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	_, err = ioutil.ReadFile(*testCaseFilePath)
+	testCasesContent, err := ioutil.ReadFile(*testCaseFilePath)
 	if err != nil {
 		panic(err)
 	}
-	_, err = ioutil.ReadFile(*submissionFilePath)
+	submissionContent, err := ioutil.ReadFile(*submissionFilePath)
 	if err != nil {
 		panic(err)
 	}
@@ -42,8 +44,24 @@ func main() {
 	db := getDB(config)
 	runner := runner.NewMySQLRunner(db)
 
-	result, _ := runner.Query("SELECT * FROM artists;")
-	fmt.Println(result)
+	submissions := parser.ParseSQLSubmission(string(submissionContent), "#")
+	testCases, err := parser.ParseTestCases(string(testCasesContent))
+	if err != nil {
+		panic(err)
+	}
+
+	var pass = true
+	for i, submission := range submissions {
+		result, _ := runner.Query(submission.Command)
+		expected := testCases[strconv.Itoa(i+1)]
+		if !reflect.DeepEqual(result, expected) {
+			fmt.Printf("Test case %d: expected %v but got %v", i, expected, result)
+			pass = false
+		}
+	}
+	if pass {
+		fmt.Println("All tests passed!")
+	}
 }
 
 func getDB(config tester.Config) *sql.DB {
