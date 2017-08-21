@@ -50,6 +50,12 @@ Test
 }
 ```
 
+### Running tests
+
+To run tests, `go run cmd/main.go`
+
+> You may provide the path to each of the files above through command line flags (testcase, submission & config)
+
 ## Ideas
 
 - [ ] Define setup and teardown life cycle
