@@ -32,7 +32,7 @@ func ParseSQLSubmission(content, commentChar string) []tester.Submission {
 	questions := []string{}
 	lines := strings.Split(content, "\n")
 
-	for _, l := range lines {
+	for i, l := range lines {
 		// trim out of the unnecessary tailing and opening spaces
 		line := strings.Trim(l, " ")
 		numberOfCharacters := utf8.RuneCountInString(line)
@@ -59,6 +59,13 @@ func ParseSQLSubmission(content, commentChar string) []tester.Submission {
 			questions = append(questions, line)
 		} else {
 			commands = append(commands, line)
+		}
+		if i == len(lines)-1 {
+			// add the submission to result list
+			submission.Command = strings.Join(commands, " ")
+			submission.Question = strings.Join(questions, " ")
+			result = append(result, submission)
+			index++
 		}
 	}
 	return result

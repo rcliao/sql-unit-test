@@ -28,6 +28,16 @@ SELECT * FROM artists;
 	}
 }
 
+func TestParseSQLSubmissions2(t *testing.T) {
+	var content = `# 1. Find out all artist
+SELECT * FROM artists;`
+	submissions := ParseSQLSubmission(content, "#")
+
+	if submissions[0].Command != "SELECT * FROM artists;" {
+		t.Error("Expected 'first submission command' to be 'SELECT * FROM artists' got '", submissions[0].Command+"'")
+	}
+}
+
 func TestParseTestCases(t *testing.T) {
 	var content = `{
 	"1": [

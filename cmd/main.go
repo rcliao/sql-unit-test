@@ -52,7 +52,10 @@ func main() {
 
 	var pass = true
 	for i, submission := range submissions {
-		result, _ := runner.Query(submission.Command)
+		result, err := runner.Query(submission.Command)
+		if err != nil {
+			panic(err)
+		}
 		expected := testCases[strconv.Itoa(i+1)]
 		if !reflect.DeepEqual(result, expected) {
 			fmt.Printf("Test case %d: expected %v but got %v", i, expected, result)
