@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-func TestParseSQLSubmissions(t *testing.T) {
+func TestParseSQL(t *testing.T) {
 	var content = `# 1. Find out all artist
 SELECT * FROM artists;
 
@@ -34,13 +34,27 @@ SELECT * FROM artists;`
 	}
 }
 
-func TestParseSQLSubmissions2(t *testing.T) {
+func TestParseSQL2(t *testing.T) {
 	var content = `# 1. Find out all artist
 SELECT * FROM artists;`
 	submissions := ParseSQL(content, "#")
 
 	if submissions[0].Command != "SELECT * FROM artists;" {
 		t.Error("Expected 'first submission command' to be 'SELECT * FROM artists' got '", submissions[0].Command+"'")
+	}
+}
+
+func TestParseSQL3(t *testing.T) {
+	var content = `SELECT * FROM artists;
+UPDATE artists SET Name = 'Eric' WHERE ID = 1;`
+	submissions := ParseSQL(content, "#")
+
+	if submissions[0].Command != "SELECT * FROM artists;" {
+		t.Error("Expected 'first submission command' to be 'SELECT * FROM artists' got '", submissions[0].Command+"'")
+	}
+
+	if submissions[1].Command != "UPDATE artists SET Name = 'Eric' WHERE ID = 1;" {
+		t.Error("Expected 'second submission command' to be 'UPDATE artists SET Name = 'Eric' WHERE ID = 1;' got '", submissions[1].Command+"'")
 	}
 }
 

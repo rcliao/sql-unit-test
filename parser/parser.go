@@ -43,11 +43,12 @@ func ParseSQL(content, commentChar string) []tester.Submission {
 				continue
 			}
 			// add the submission to result list
+			index++
+			submission.Index = index
 			submission.Command = strings.Join(commands, " ")
 			submission.Question = strings.Join(questions, " ")
 			result = append(result, submission)
-			index++
-			submission.Index = index
+
 			// reset all the state
 			submission = tester.Submission{}
 			commands = []string{}
