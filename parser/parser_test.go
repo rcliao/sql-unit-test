@@ -1,6 +1,9 @@
 package parser
 
-import "testing"
+import (
+	"fmt"
+	"testing"
+)
 
 func TestParseSQLSubmissions(t *testing.T) {
 	var content = `# 1. Find out all artist
@@ -11,9 +14,12 @@ SELECT * FROM artists;
 SELECT name
 FROM songs;
 
-SELECT * FROM artists;
-`
-	submissions := ParseSQLSubmission(content, "#")
+SELECT * FROM artists;`
+	submissions := ParseSQL(content, "#")
+
+	if len(submissions) != 3 {
+		t.Error(fmt.Sprint("Expected the submission size to be '3' but got", len(submissions)))
+	}
 
 	if submissions[0].Command != "SELECT * FROM artists;" {
 		t.Error("Expected 'first submission command' to be 'SELECT * FROM artists' got '", submissions[0].Command+"'")
@@ -31,7 +37,7 @@ SELECT * FROM artists;
 func TestParseSQLSubmissions2(t *testing.T) {
 	var content = `# 1. Find out all artist
 SELECT * FROM artists;`
-	submissions := ParseSQLSubmission(content, "#")
+	submissions := ParseSQL(content, "#")
 
 	if submissions[0].Command != "SELECT * FROM artists;" {
 		t.Error("Expected 'first submission command' to be 'SELECT * FROM artists' got '", submissions[0].Command+"'")

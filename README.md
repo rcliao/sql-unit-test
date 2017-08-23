@@ -58,5 +58,6 @@ To run tests, `go run cmd/main.go`
 
 ## Ideas
 
-- [ ] Define setup and teardown life cycle
+- [x] Define setup and teardown life cycle
+- [ ] Add web interface for ease of distribution
 - [ ] Add other SQL driver implementations

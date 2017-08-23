@@ -23,7 +23,7 @@ SELECT name
 FROM songs;
 ```
 */
-func ParseSQLSubmission(content, commentChar string) []tester.Submission {
+func ParseSQL(content, commentChar string) []tester.Submission {
 	index := 1
 	result := []tester.Submission{}
 	submission := tester.Submission{}
@@ -47,9 +47,9 @@ func ParseSQLSubmission(content, commentChar string) []tester.Submission {
 			submission.Question = strings.Join(questions, " ")
 			result = append(result, submission)
 			index++
+			submission.Index = index
 			// reset all the state
 			submission = tester.Submission{}
-			submission.Index = index
 			commands = []string{}
 			questions = []string{}
 			continue
@@ -60,12 +60,19 @@ func ParseSQLSubmission(content, commentChar string) []tester.Submission {
 		} else {
 			commands = append(commands, line)
 		}
-		if i == len(lines)-1 {
+		if i == len(lines)-1 || line[len(line)-1:] == ";" {
 			// add the submission to result list
-			submission.Command = strings.Join(commands, " ")
-			submission.Question = strings.Join(questions, " ")
-			result = append(result, submission)
-			index++
+			if len(commands) > 0 {
+				index++
+				submission.Index = index
+				submission.Command = strings.Join(commands, " ")
+				submission.Question = strings.Join(questions, " ")
+				result = append(result, submission)
+				// reset
+				submission = tester.Submission{}
+				commands = []string{}
+				questions = []string{}
+			}
 		}
 	}
 	return result

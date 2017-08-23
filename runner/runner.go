@@ -60,5 +60,6 @@ func (r MySQLRunner) Query(query string) ([]map[string]string, error) {
 
 // Execute a query to update database
 func (r MySQLRunner) Execute(query string) error {
-	return nil
+	_, err := r.db.Exec(query)
+	return err
 }

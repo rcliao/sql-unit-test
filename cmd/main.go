@@ -19,11 +19,14 @@ var (
 	configFilePath     = flag.String("config", "./config.json", "config.json filepath")
 	testCaseFilePath   = flag.String("testcases", "./testcase.json", "testcase.json filepath")
 	submissionFilePath = flag.String("submission", "./submission.sql", "submission.txt filepath")
+	setupFilePath      = flag.String("setup", "", "setup.sql filepath")
+	teardownFilePath   = flag.String("teardown", "", "teardown.sql filepath")
 )
 
 func main() {
 	flag.Parse()
 
+	// getting contents
 	configContent, err := ioutil.ReadFile(*configFilePath)
 	if err != nil {
 		panic(err)
@@ -36,20 +39,58 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+	var setupContent = []byte{}
+	if *setupFilePath != "" {
+		setupContent, err = ioutil.ReadFile(*setupFilePath)
+		if err != nil {
+			panic(err)
+		}
+	}
+	var teardownContent = []byte{}
+	if *teardownFilePath != "" {
+		teardownContent, err = ioutil.ReadFile(*teardownFilePath)
+		if err != nil {
+			panic(err)
+		}
+	}
 
+	// parsing content
 	config, err := parser.ParseConfig(string(configContent))
 	if err != nil {
 		panic(err)
 	}
-	db := getDB(config)
-	runner := runner.NewMySQLRunner(db)
-
-	submissions := parser.ParseSQLSubmission(string(submissionContent), "#")
+	submissions := parser.ParseSQL(string(submissionContent), "#")
 	testCases, err := parser.ParseTestCases(string(testCasesContent))
 	if err != nil {
 		panic(err)
 	}
+	var setupStatements = []tester.Submission{}
+	if string(setupContent) != "" {
+		setupStatements = parser.ParseSQL(string(setupContent), "#")
+		if err != nil {
+			panic(err)
+		}
+	}
+	var teardownStatements = []tester.Submission{}
+	if string(teardownContent) != "" {
+		teardownStatements = parser.ParseSQL(string(teardownContent), "#")
+		if err != nil {
+			panic(err)
+		}
+	}
 
+	db := getDB(config)
+	runner := runner.NewMySQLRunner(db)
+	// ready to run through life cycle
+	// setup
+	if len(setupStatements) > 0 {
+		for _, statement := range setupStatements {
+			fmt.Println(statement.Command)
+			if err := runner.Execute(statement.Command); err != nil {
+				panic(err)
+			}
+		}
+	}
 	var pass = true
 	for i, submission := range submissions {
 		result, err := runner.Query(submission.Command)
@@ -64,6 +105,14 @@ func main() {
 	}
 	if pass {
 		fmt.Println("All tests passed!")
+	}
+	// teardown
+	if len(teardownStatements) > 0 {
+		for _, statement := range teardownStatements {
+			if err := runner.Execute(statement.Command); err != nil {
+				panic(err)
+			}
+		}
 	}
 }
 
