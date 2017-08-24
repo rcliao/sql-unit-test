@@ -15,6 +15,7 @@ test sql without installing CLI or its dependencies (e.g. MySQL)
 func main() {
 	r := mux.NewRouter()
 	r.HandleFunc("/hello", web.Hello()).Methods("GET")
+	r.HandleFunc("/", web.Index()).Methods("GET")
 
 	http.ListenAndServe(":8000", r)
 }
