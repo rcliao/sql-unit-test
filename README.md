@@ -25,14 +25,17 @@ A sample of config.json can be found below:
 }
 ```
 
-### submission.sql
+### statements.sql
 
-Submission defines the sql submission.
+Statements defines the sql submission to be tested in that order.
 
 ```
 # 1. Find the alternative genre
 SELECT Genre FROM genre where Genre = 'alternative';
 ```
+
+> You can also provide the setup.sql and teardown.sql as same format as above to
+> define better test environment control
 
 ### testcase.json
 
@@ -44,7 +47,7 @@ Test
 {
     "1": [
         {
-            "genre": "alternative"
+            "Genre": "alternative"
         }
     ]
 }
@@ -61,3 +64,4 @@ To run tests, `go run cmd/main.go`
 - [x] Define setup and teardown life cycle
 - [ ] Add web interface for ease of distribution
 - [ ] Add other SQL driver implementations
+- [ ] Use UUID (or some other random string) for database name for parallel testings

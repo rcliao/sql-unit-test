@@ -9,7 +9,7 @@ import (
 )
 
 /*
-ParseSQLSubmission parses through the content of text file to a list of submissions
+ParseSQL parses through the content of text file to a list of submissions
 
 A sample SQL text file may look like below
 
@@ -23,10 +23,10 @@ SELECT name
 FROM songs;
 ```
 */
-func ParseSQL(content, commentChar string) []tester.Submission {
+func ParseSQL(content, commentChar string) []tester.Statement {
 	index := 1
-	result := []tester.Submission{}
-	submission := tester.Submission{}
+	result := []tester.Statement{}
+	submission := tester.Statement{}
 	submission.Index = index
 	commands := []string{}
 	questions := []string{}
@@ -45,12 +45,12 @@ func ParseSQL(content, commentChar string) []tester.Submission {
 			// add the submission to result list
 			index++
 			submission.Index = index
-			submission.Command = strings.Join(commands, " ")
-			submission.Question = strings.Join(questions, " ")
+			submission.Text = strings.Join(commands, " ")
+			submission.Comment = strings.Join(questions, " ")
 			result = append(result, submission)
 
 			// reset all the state
-			submission = tester.Submission{}
+			submission = tester.Statement{}
 			commands = []string{}
 			questions = []string{}
 			continue
@@ -66,11 +66,11 @@ func ParseSQL(content, commentChar string) []tester.Submission {
 			if len(commands) > 0 {
 				index++
 				submission.Index = index
-				submission.Command = strings.Join(commands, " ")
-				submission.Question = strings.Join(questions, " ")
+				submission.Text = strings.Join(commands, " ")
+				submission.Comment = strings.Join(questions, " ")
 				result = append(result, submission)
 				// reset
-				submission = tester.Submission{}
+				submission = tester.Statement{}
 				commands = []string{}
 				questions = []string{}
 			}

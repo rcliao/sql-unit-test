@@ -5,8 +5,6 @@ import (
 	"flag"
 	"fmt"
 	"io/ioutil"
-	"reflect"
-	"strconv"
 
 	_ "github.com/go-sql-driver/mysql"
 
@@ -18,9 +16,10 @@ import (
 var (
 	configFilePath     = flag.String("config", "./config.json", "config.json filepath")
 	testCaseFilePath   = flag.String("testcases", "./testcase.json", "testcase.json filepath")
-	submissionFilePath = flag.String("submission", "./submission.sql", "submission.txt filepath")
-	setupFilePath      = flag.String("setup", "", "setup.sql filepath")
-	teardownFilePath   = flag.String("teardown", "", "teardown.sql filepath")
+	submissionFilePath = flag.String("submission", "./statements.sql", "submission.txt filepath")
+	// optional params
+	setupFilePath    = flag.String("setup", "", "setup.sql filepath")
+	teardownFilePath = flag.String("teardown", "", "teardown.sql filepath")
 )
 
 func main() {
@@ -64,14 +63,14 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	var setupStatements = []tester.Submission{}
+	var setupStatements = []tester.Statement{}
 	if string(setupContent) != "" {
 		setupStatements = parser.ParseSQL(string(setupContent), "#")
 		if err != nil {
 			panic(err)
 		}
 	}
-	var teardownStatements = []tester.Submission{}
+	var teardownStatements = []tester.Statement{}
 	if string(teardownContent) != "" {
 		teardownStatements = parser.ParseSQL(string(teardownContent), "#")
 		if err != nil {
@@ -81,38 +80,14 @@ func main() {
 
 	db := getDB(config)
 	runner := runner.NewMySQLRunner(db)
-	// ready to run through life cycle
-	// setup
-	if len(setupStatements) > 0 {
-		for _, statement := range setupStatements {
-			fmt.Println(statement.Command)
-			if err := runner.Execute(statement.Command); err != nil {
-				panic(err)
-			}
-		}
+	result, err := tester.Run(runner, submissions, setupStatements, teardownStatements, testCases)
+	if err != nil {
+		panic(err)
 	}
-	var pass = true
-	for i, submission := range submissions {
-		result, err := runner.Query(submission.Command)
-		if err != nil {
-			panic(err)
-		}
-		expected := testCases[strconv.Itoa(i+1)]
-		if !reflect.DeepEqual(result, expected) {
-			fmt.Printf("Test case %d: expected %v but got %v", i, expected, result)
-			pass = false
-		}
-	}
-	if pass {
-		fmt.Println("All tests passed!")
-	}
-	// teardown
-	if len(teardownStatements) > 0 {
-		for _, statement := range teardownStatements {
-			if err := runner.Execute(statement.Command); err != nil {
-				panic(err)
-			}
-		}
+	if result {
+		fmt.Println("All test passed!")
+	} else {
+
 	}
 }
 
