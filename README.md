@@ -62,6 +62,15 @@ To run tests, `go run cmd/main.go`
 ## Ideas
 
 - [x] Define setup and teardown life cycle
-- [ ] Add web interface for ease of distribution
-- [ ] Add other SQL driver implementations
+- [x] Add web interface for ease of distribution
 - [ ] Use UUID (or some other random string) for database name for parallel testings
+- [ ] Improve the existing front end to have better style/experience
+    - [ ] Add Code Editor
+    - [ ] Better feedback on fail test cases
+- [ ] Add control panel for defining new test cases
+- [ ] Use dep to do dependency management
+
+## Roadmap
+
+- [ ] Add other SQL driver implementations
+- [ ] Add prepared statement support
