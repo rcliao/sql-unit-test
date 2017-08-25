@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"strings"
 
 	_ "github.com/go-sql-driver/mysql"
 
@@ -72,14 +73,14 @@ func RunTest() http.HandlerFunc {
 
 		submission := r.FormValue("statements")
 		statements := parser.ParseSQL(string(submission), "#")
-		pass, err := tester.Run(runner, statements, setupStatements, teardownStatements, testCases)
+		failedTestCases, err := tester.Run(runner, statements, setupStatements, teardownStatements, testCases)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 		var result = "All test passes!"
-		if !pass {
-			result = "There are tests failing"
+		if len(failedTestCases) > 0 {
+			result = strings.Join(failedTestCases, "\n")
 		}
 
 		fmt.Fprintln(w, result)

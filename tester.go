@@ -24,29 +24,36 @@ type Config struct {
 }
 
 // Run runs through a list of statements in the submission and compare to test cases
-func Run(runner runner.Runner, statements, setupStatements, teardownStatements []Statement, testcases map[string][]map[string]string) (bool, error) {
-	var pass = true
+func Run(runner runner.Runner, statements, setupStatements, teardownStatements []Statement, testcases map[string][]map[string]string) ([]string, error) {
+	var failedTestCases = []string{}
 	for _, statement := range setupStatements {
 		if err := runner.Execute(statement.Text); err != nil {
-			return false, err
+			return failedTestCases, err
 		}
 	}
 	for i, statement := range statements {
 		result, err := runner.Query(statement.Text)
 		if err != nil {
-			return false, err
+			return failedTestCases, err
 		}
 		expected := testcases[strconv.Itoa(i+1)]
 		if !reflect.DeepEqual(result, expected) {
-			fmt.Printf("Test case %d: expected %v but got %v", i, expected, result)
-			pass = false
+			failedTestCases = append(
+				failedTestCases,
+				fmt.Sprintf(
+					"Failed test case %d: expected %v but got %v\n",
+					i,
+					expected,
+					result,
+				),
+			)
 		}
 	}
 	// teardown
 	for _, statement := range teardownStatements {
 		if err := runner.Execute(statement.Text); err != nil {
-			return false, err
+			return failedTestCases, err
 		}
 	}
-	return pass, nil
+	return failedTestCases, nil
 }

@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"io/ioutil"
+	"strings"
 
 	_ "github.com/go-sql-driver/mysql"
 
@@ -80,14 +81,14 @@ func main() {
 
 	db := getDB(config)
 	runner := runner.NewMySQLRunner(db)
-	result, err := tester.Run(runner, submissions, setupStatements, teardownStatements, testCases)
+	failedTestCases, err := tester.Run(runner, submissions, setupStatements, teardownStatements, testCases)
 	if err != nil {
 		panic(err)
 	}
-	if result {
+	if len(failedTestCases) == 0 {
 		fmt.Println("All test passed!")
 	} else {
-
+		fmt.Println(strings.Join(failedTestCases, "\n"))
 	}
 }
 
