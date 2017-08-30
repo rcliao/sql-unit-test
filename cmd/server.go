@@ -19,6 +19,7 @@ func main() {
 	r.HandleFunc("/hello", web.Hello()).Methods("GET")
 	r.HandleFunc("/", web.Index()).Methods("GET")
 	r.HandleFunc("/api/test", web.RunTest()).Methods("POST")
+	r.PathPrefix("/static").Handler(web.Static())
 
 	fmt.Println("Running web server at port 8000")
 	http.ListenAndServe(":8000", r)

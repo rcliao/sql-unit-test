@@ -2,14 +2,45 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title></title>
+    <title>SQL Unit Test</title>
+
+    <link rel="stylesheet" href="/static/app.css">
 </head>
 <body>
     <h1>SQL Unit Test</h1>
     <form action="/api/test" method="POST">
-        <textarea id="" name="statements" cols="50" rows="20"></textarea>
+        <div>
+            <label for="subject">Subjects</label>
+            <select id="subject" name="subject">
+                <option value="exercise-1">Exercise 1</option>
+            </select>
+        </div>
 
-        <button>Submit</button>
+        <div>
+            <label for="statements">SQL Statements</label>
+            <div id="statements"></div>
+            <textarea name="statements" cols="50" rows="20"></textarea>
+        </div>
+
+        <footer class="actions">
+            <button class="btn">Submit</button>
+        </footer>
     </form>
+
+    <script src="/static/ace/ace.js" type="text/javascript" charset="utf-8"></script>
+    <script>
+        (function() {
+            'use strict';
+
+            var textarea = document.querySelector('[name="statements"]');
+            textarea.style.display = 'none';
+            var editor = ace.edit("statements");
+            editor.setTheme("ace/theme/monokai");
+            editor.getSession().setMode("ace/mode/mysql");
+            editor.getSession().on('change', function(){
+                textarea.value = editor.getSession().getValue();
+            });
+        })();
+    </script>
 </body>
 </html>

@@ -9,6 +9,7 @@ import (
 	"os"
 	"strings"
 
+	// Using MySQL Driver here becasue the need of random database access
 	_ "github.com/go-sql-driver/mysql"
 
 	tester "github.com/rcliao/sql-unit-test"
@@ -21,6 +22,11 @@ func Hello() http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintln(w, "Hello, SQL-Unit-Test Server!")
 	})
+}
+
+// Static serves the static assets (js & css)
+func Static() http.Handler {
+	return http.StripPrefix("/static", http.FileServer(http.Dir("./web/static")))
 }
 
 // Index renders the index page for submitting SQL queries to test
@@ -76,6 +82,10 @@ func RunTest() http.HandlerFunc {
 		failedTestCases, err := tester.Run(runner, statements, setupStatements, teardownStatements, testCases)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		if len(statements) == 0 {
+			fmt.Fprintln(w, "No test provided.")
 			return
 		}
 		var result = "All test passes!"
