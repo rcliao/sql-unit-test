@@ -17,6 +17,8 @@ import (
 	"github.com/rcliao/sql-unit-test/runner"
 )
 
+var subjectFolder = "./subjects"
+
 // Hello says hello
 func Hello() http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -42,42 +44,50 @@ func Index() http.HandlerFunc {
 
 // RunTest handles the query from the request param to test them
 func RunTest() http.HandlerFunc {
-	testCasesContent, err := ioutil.ReadFile("./testcase.json")
-	if err != nil {
-		panic(err)
-	}
-	setupContent, err := ioutil.ReadFile("./setup.sql")
-	if err != nil {
-		panic(err)
-	}
-	teardownContent, err := ioutil.ReadFile("./teardown.sql")
-	if err != nil {
-		panic(err)
-	}
-	testCases, err := parser.ParseTestCases(string(testCasesContent))
-	if err != nil {
-		panic(err)
-	}
-	var setupStatements = []tester.Statement{}
-	if string(setupContent) != "" {
-		setupStatements = parser.ParseSQL(string(setupContent), "#")
-		if err != nil {
-			panic(err)
-		}
-	}
-	var teardownStatements = []tester.Statement{}
-	if string(teardownContent) != "" {
-		teardownStatements = parser.ParseSQL(string(teardownContent), "#")
-		if err != nil {
-			panic(err)
-		}
-	}
-
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		db := getDB()
 		runner := runner.NewMySQLRunner(db)
 
 		submission := r.FormValue("statements")
+		subject := r.FormValue("subject")
+
+		testCasesContent, err := ioutil.ReadFile(subjectFolder + "/" + subject + "/testcase.json")
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		setupContent, err := ioutil.ReadFile(subjectFolder + "/" + subject + "/setup.sql")
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		teardownContent, err := ioutil.ReadFile(subjectFolder + "/" + subject + "/teardown.sql")
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		testCases, err := parser.ParseTestCases(string(testCasesContent))
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		var setupStatements = []tester.Statement{}
+		if string(setupContent) != "" {
+			setupStatements = parser.ParseSQL(string(setupContent), "#")
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+		}
+		var teardownStatements = []tester.Statement{}
+		if string(teardownContent) != "" {
+			teardownStatements = parser.ParseSQL(string(teardownContent), "#")
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+		}
+
 		statements := parser.ParseSQL(string(submission), "#")
 		failedTestCases, err := tester.Run(runner, statements, setupStatements, teardownStatements, testCases)
 		if err != nil {
