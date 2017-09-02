@@ -35,6 +35,7 @@ func ParseSQL(content, commentChar string) []tester.Statement {
 	for i, l := range lines {
 		// trim out of the unnecessary tailing and opening spaces
 		line := strings.Trim(l, " ")
+		line = strings.Trim(line, "\r")
 		numberOfCharacters := utf8.RuneCountInString(line)
 		// when face empty line, add submission and reset state back to start
 		if numberOfCharacters == 0 {

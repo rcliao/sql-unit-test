@@ -88,7 +88,7 @@ func RunTest() http.HandlerFunc {
 			}
 		}
 
-		statements := parser.ParseSQL(string(submission), "#")
+		statements := parser.ParseSQL(submission, "#")
 		failedTestCases, err := tester.Run(runner, statements, setupStatements, teardownStatements, testCases)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)

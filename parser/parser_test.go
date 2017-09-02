@@ -21,16 +21,16 @@ SELECT * FROM artists;`
 		t.Error(fmt.Sprint("Expected the submission size to be '3' but got", len(submissions)))
 	}
 
-	if submissions[0].Command != "SELECT * FROM artists;" {
-		t.Error("Expected 'first submission command' to be 'SELECT * FROM artists' got '", submissions[0].Command+"'")
+	if submissions[0].Text != "SELECT * FROM artists;" {
+		t.Error("Expected 'first submission command' to be 'SELECT * FROM artists' got '", submissions[0].Text+"'")
 	}
 
-	if submissions[1].Command != "SELECT name FROM songs;" {
-		t.Error("Expect 'second submission command' to be 'SELECT name FROM songs;' got '" + submissions[1].Command + "'")
+	if submissions[1].Text != "SELECT name FROM songs;" {
+		t.Error("Expect 'second submission command' to be 'SELECT name FROM songs;' got '" + submissions[1].Text + "'")
 	}
 
-	if submissions[2].Command != "SELECT * FROM artists;" {
-		t.Error("Expect 'third submission command' to be 'SELECT * FROM artists;' got '" + submissions[2].Command + "'")
+	if submissions[2].Text != "SELECT * FROM artists;" {
+		t.Error("Expect 'third submission command' to be 'SELECT * FROM artists;' got '" + submissions[2].Text + "'")
 	}
 }
 
@@ -39,8 +39,8 @@ func TestParseSQL2(t *testing.T) {
 SELECT * FROM artists;`
 	submissions := ParseSQL(content, "#")
 
-	if submissions[0].Command != "SELECT * FROM artists;" {
-		t.Error("Expected 'first submission command' to be 'SELECT * FROM artists' got '", submissions[0].Command+"'")
+	if submissions[0].Text != "SELECT * FROM artists;" {
+		t.Error("Expected 'first submission command' to be 'SELECT * FROM artists' got '" + submissions[0].Text + "'")
 	}
 }
 
@@ -49,12 +49,40 @@ func TestParseSQL3(t *testing.T) {
 UPDATE artists SET Name = 'Eric' WHERE ID = 1;`
 	submissions := ParseSQL(content, "#")
 
-	if submissions[0].Command != "SELECT * FROM artists;" {
-		t.Error("Expected 'first submission command' to be 'SELECT * FROM artists' got '", submissions[0].Command+"'")
+	if submissions[0].Text != "SELECT * FROM artists;" {
+		t.Error("Expected 'first submission command' to be 'SELECT * FROM artists' got '" + submissions[0].Text + "'")
 	}
 
-	if submissions[1].Command != "UPDATE artists SET Name = 'Eric' WHERE ID = 1;" {
-		t.Error("Expected 'second submission command' to be 'UPDATE artists SET Name = 'Eric' WHERE ID = 1;' got '", submissions[1].Command+"'")
+	if submissions[1].Text != "UPDATE artists SET Name = 'Eric' WHERE ID = 1;" {
+		t.Error("Expected 'second submission command' to be 'UPDATE artists SET Name = 'Eric' WHERE ID = 1;' got '", submissions[1].Text+"'")
+	}
+}
+
+func TestParseSQL4(t *testing.T) {
+	var content = `SELECT Title, UPC, Genre FROM Titles;
+
+SELECT * FROM Titles WHERE ArtistID=2;
+
+SELECT FirstName, LastName, HomePhone, EMail FROM Members;
+
+SELECT MemberID FROM Members WHERE Gender = 'M';
+
+SELECT MemberID, Country FROM Members WHERE Country = 'Canada';`
+	submissions := ParseSQL(content, "#")
+	if submissions[0].Text != "SELECT Title, UPC, Genre FROM Titles;" {
+		t.Error("Expected first submission command to be 'SELECT Title, UPC, Genre FROM Titles;' but got '", submissions[0].Text)
+	}
+	if submissions[1].Text != "SELECT * FROM Titles WHERE ArtistID=2;" {
+		t.Error("Expected first submission command to be 'SELECT * FROM Titles WHERE ArtistID=2;' but got '", submissions[1].Text)
+	}
+	if submissions[2].Text != "SELECT FirstName, LastName, HomePhone, EMail FROM Members;" {
+		t.Error("Expected first submission command to be 'SELECT FirstName, LastName, HomePhone, EMail FROM Members;' but got '", submissions[2].Text)
+	}
+	if submissions[3].Text != "SELECT MemberID FROM Members WHERE Gender = 'M';" {
+		t.Error("Expected first submission command to be 'SELECT MemberID FROM Members WHERE Gender = 'M';' but got '", submissions[3].Text)
+	}
+	if submissions[4].Text != "SELECT MemberID, Country FROM Members WHERE Country = 'Canada';" {
+		t.Error("Expected first submission command to be 'SELECT MemberID, Country FROM Members WHERE Country = 'Canada'' but got '", submissions[4].Text)
 	}
 }
 
