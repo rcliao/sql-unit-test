@@ -2,3 +2,7 @@ config.json
 testcase.json
 *.sql
 bin/
+
+.env
+
+subjects

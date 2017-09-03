@@ -31,17 +31,29 @@ func Run(runner runner.Runner, statements, setupStatements, teardownStatements [
 			return failedTestCases, err
 		}
 	}
-	for i, statement := range statements {
+	for i, expected := range testcases {
+		index, _ := strconv.Atoi(i)
+		if index-1 >= len(statements) {
+			failedTestCases = append(
+				failedTestCases,
+				fmt.Sprintf(
+					"Failed test case %s: expected %v but got 'Nothing'\n",
+					i,
+					expected,
+				),
+			)
+			continue
+		}
+		statement := statements[index-1]
 		result, err := runner.Query(statement.Text)
 		if err != nil {
 			return failedTestCases, err
 		}
-		expected := testcases[strconv.Itoa(i+1)]
 		if !reflect.DeepEqual(result, expected) {
 			failedTestCases = append(
 				failedTestCases,
 				fmt.Sprintf(
-					"Failed test case %d: expected %v but got %v\n",
+					"Failed test case %s: expected %v but got %v\n",
 					i,
 					expected,
 					result,
