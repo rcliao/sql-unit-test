@@ -68,7 +68,7 @@ To run tests, `go run cmd/main.go`
     - [x] Add Code Editor
     - [ ] Better feedback on fail test cases
 - [ ] Add control panel for defining new test cases
-- [ ] Use dep to do dependency management
+- [x] Use dep to do dependency management
 
 ## Roadmap
 
