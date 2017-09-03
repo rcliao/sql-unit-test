@@ -58,7 +58,6 @@ func Run(sqlDB *sql.DB, statements, setupStatements, teardownStatements []Statem
 	defer func() {
 		if _, err := sqlDB.Exec("DROP DATABASE " + randomDatabaseName); err != nil {
 			fmt.Println(err)
-			return testResult, err
 		}
 	}()
 
