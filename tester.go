@@ -2,10 +2,15 @@ package tester
 
 import (
 	"database/sql"
+	"fmt"
+	"math/rand"
 	"reflect"
 
 	"github.com/rcliao/sql-unit-test/db"
 )
+
+var letterRunes = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
+var databaseNameSize = 32
 
 // TestCase represents each test case used against the Table
 type TestCase struct {
@@ -40,6 +45,22 @@ type Config struct {
 // Run runs through a list of statements in the submission and compare to test cases
 func Run(sqlDB *sql.DB, statements, setupStatements, teardownStatements []Statement, testcases []TestCase) ([]TestResult, error) {
 	var testResult = []TestResult{}
+	// use UUID to create temp database
+	randomDatabaseName := getRandomString()
+	if _, err := sqlDB.Exec("CREATE DATABASE " + randomDatabaseName); err != nil {
+		fmt.Println(err)
+		return testResult, err
+	}
+	if _, err := sqlDB.Exec("USE " + randomDatabaseName); err != nil {
+		fmt.Println(err)
+		return testResult, err
+	}
+	defer func() {
+		if _, err := sqlDB.Exec("DROP DATABASE " + randomDatabaseName); err != nil {
+			fmt.Println(err)
+			return testResult, err
+		}
+	}()
 
 	// Setup
 	for _, statement := range setupStatements {
@@ -103,5 +124,14 @@ func Run(sqlDB *sql.DB, statements, setupStatements, teardownStatements []Statem
 			return testResult, err
 		}
 	}
+
 	return testResult, nil
+}
+
+func getRandomString() string {
+	b := make([]rune, databaseNameSize)
+	for i := range b {
+		b[i] = letterRunes[rand.Intn(len(letterRunes))]
+	}
+	return string(b)
 }
