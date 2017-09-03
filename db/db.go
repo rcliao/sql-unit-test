@@ -1,28 +1,19 @@
-package runner
+package db
 
 import "database/sql"
 
-// Runner defines behavior to execute query and return table rows
-type Runner interface {
-	Query(query string) ([]map[string]string, error)
-	Execute(query string) error
-}
-
-// MySQLRunner implements Runner for MySQL specification
-type MySQLRunner struct {
-	db *sql.DB
-}
-
-// NewMySQLRunner is a simple constructor pattern for getting MySQLRunner
-func NewMySQLRunner(db *sql.DB) MySQLRunner {
-	return MySQLRunner{db}
+// Table contains the MySQL Table result in map of string to string
+type Table struct {
+	// IDEA: probably think of a better way to do type comparison
+	Query   string
+	Content []map[string]string
 }
 
 // Query a query and return the table
-func (r MySQLRunner) Query(query string) ([]map[string]string, error) {
-	result := []map[string]string{}
+func Query(db *sql.DB, query string) (Table, error) {
+	result := Table{Query: query}
 
-	rows, err := r.db.Query(query)
+	rows, err := db.Query(query)
 	if err != nil {
 		return result, err
 	}
@@ -51,15 +42,9 @@ func (r MySQLRunner) Query(query string) ([]map[string]string, error) {
 			for _, col := range columns {
 				tableRow[col] = val
 			}
-			result = append(result, tableRow)
+			result.Content = append(result.Content, tableRow)
 		}
 	}
 
 	return result, nil
-}
-
-// Execute a query to update database
-func (r MySQLRunner) Execute(query string) error {
-	_, err := r.db.Exec(query)
-	return err
 }

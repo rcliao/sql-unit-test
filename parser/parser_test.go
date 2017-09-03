@@ -101,20 +101,19 @@ func TestParseTestCases(t *testing.T) {
 		t.Error("Having error parsing the content", err)
 	}
 
-	if testCases["1"][0]["name"] != "Eric" {
-		t.Error("Expect test case to get correct name 'Eric' but got '" + testCases["1"][0]["name"] + "'")
+	if testCases[0].Content[0]["name"] != "Eric" {
+		t.Error("Expect test case to get correct name 'Eric' but got '" + testCases[0].Content[0]["name"] + "'")
 	}
 
-	if testCases["1"][0]["age"] != "21" {
-		t.Error("Expect test case to get correct age '21' but got '" + testCases["1"][0]["age"] + "'")
+	if testCases[0].Content[0]["age"] != "21" {
+		t.Error("Expect test case to get correct age '21' but got '" + testCases[0].Content[0]["age"] + "'")
 	}
 }
 
 func TestParseConfig(t *testing.T) {
 	var content = `{
 	"username": "root",
-	"host": "localhost",
-	"database": "cs1222"
+	"host": "localhost"
 }`
 	result, err := ParseConfig(content)
 
@@ -132,9 +131,5 @@ func TestParseConfig(t *testing.T) {
 
 	if result.Host != "localhost" {
 		t.Error("Expect to get 'localhost' host but got '" + result.Host + "'")
-	}
-
-	if result.Database != "cs1222" {
-		t.Error("Expect to get 'cs1222' host but got '" + result.Database + "'")
 	}
 }

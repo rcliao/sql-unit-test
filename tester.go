@@ -1,12 +1,26 @@
 package tester
 
 import (
-	"fmt"
+	"database/sql"
 	"reflect"
-	"strconv"
 
-	"github.com/rcliao/sql-unit-test/runner"
+	"github.com/rcliao/sql-unit-test/db"
 )
+
+// TestCase represents each test case used against the Table
+type TestCase struct {
+	Index    string
+	Content  []map[string]string
+	Question string
+}
+
+// TestResult wraps the result of tests
+type TestResult struct {
+	Expected TestCase
+	Actual   db.Table
+	Pass     bool
+	Error    error
+}
 
 // Statement represents each statement student submit
 type Statement struct {
@@ -19,53 +33,75 @@ type Statement struct {
 type Config struct {
 	Username string `json:"username"`
 	Password string `json:"password"`
-	Database string `json:"database"`
 	Host     string `json:"host"`
+	Database string `json:"database"`
 }
 
 // Run runs through a list of statements in the submission and compare to test cases
-func Run(runner runner.Runner, statements, setupStatements, teardownStatements []Statement, testcases map[string][]map[string]string) ([]string, error) {
-	var failedTestCases = []string{}
+func Run(sqlDB *sql.DB, statements, setupStatements, teardownStatements []Statement, testcases []TestCase) ([]TestResult, error) {
+	var testResult = []TestResult{}
+
+	// Setup
 	for _, statement := range setupStatements {
-		if err := runner.Execute(statement.Text); err != nil {
-			return failedTestCases, err
+		if _, err := sqlDB.Exec(statement.Text); err != nil {
+			return testResult, err
 		}
 	}
+
 	for i, expected := range testcases {
-		index, _ := strconv.Atoi(i)
-		if index-1 >= len(statements) {
-			failedTestCases = append(
-				failedTestCases,
-				fmt.Sprintf(
-					"Failed test case %s: expected %v but got 'Nothing'\n",
-					i,
-					expected,
-				),
+		if i >= len(statements) {
+			testResult = append(
+				testResult,
+				TestResult{
+					Expected: expected,
+					Actual:   db.Table{},
+					Pass:     false,
+				},
 			)
 			continue
 		}
-		statement := statements[index-1]
-		result, err := runner.Query(statement.Text)
+		statement := statements[i]
+		// TODO: detect if statement is a query or update
+		table, err := db.Query(sqlDB, statement.Text)
+		// Query has syntax error
 		if err != nil {
-			return failedTestCases, err
+			testResult = append(
+				testResult,
+				TestResult{
+					Expected: expected,
+					Actual:   table,
+					Pass:     false,
+					Error:    err,
+				},
+			)
+			continue
 		}
-		if !reflect.DeepEqual(result, expected) {
-			failedTestCases = append(
-				failedTestCases,
-				fmt.Sprintf(
-					"Failed test case %s: expected %v but got %v\n",
-					i,
-					expected,
-					result,
-				),
+		if !reflect.DeepEqual(table.Content, expected.Content) {
+			testResult = append(
+				testResult,
+				TestResult{
+					Expected: expected,
+					Actual:   table,
+					Pass:     false,
+				},
+			)
+		} else {
+			testResult = append(
+				testResult,
+				TestResult{
+					Expected: expected,
+					Actual:   table,
+					Pass:     true,
+				},
 			)
 		}
 	}
+
 	// teardown
 	for _, statement := range teardownStatements {
-		if err := runner.Execute(statement.Text); err != nil {
-			return failedTestCases, err
+		if _, err := sqlDB.Exec(statement.Text); err != nil {
+			return testResult, err
 		}
 	}
-	return failedTestCases, nil
+	return testResult, nil
 }

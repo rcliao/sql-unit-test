@@ -5,13 +5,11 @@ import (
 	"flag"
 	"fmt"
 	"io/ioutil"
-	"strings"
 
 	_ "github.com/go-sql-driver/mysql"
 
 	tester "github.com/rcliao/sql-unit-test"
 	"github.com/rcliao/sql-unit-test/parser"
-	"github.com/rcliao/sql-unit-test/runner"
 )
 
 var (
@@ -79,20 +77,15 @@ func main() {
 		}
 	}
 
-	db := getDB(config)
-	runner := runner.NewMySQLRunner(db)
-	failedTestCases, err := tester.Run(runner, submissions, setupStatements, teardownStatements, testCases)
+	sqlDB := getDBFromConfig(config)
+	testResult, err := tester.Run(sqlDB, submissions, setupStatements, teardownStatements, testCases)
 	if err != nil {
 		panic(err)
 	}
-	if len(failedTestCases) == 0 {
-		fmt.Println("All test passed!")
-	} else {
-		fmt.Println(strings.Join(failedTestCases, "\n"))
-	}
+	fmt.Println(testResult)
 }
 
-func getDB(config tester.Config) *sql.DB {
+func getDBFromConfig(config tester.Config) *sql.DB {
 	defaultProtocol := "tcp"
 	defaultPort := "3306"
 	sqlDSN := fmt.Sprintf(

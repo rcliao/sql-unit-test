@@ -10,13 +10,12 @@ import (
 
 	_ "github.com/go-sql-driver/mysql"
 
+	"github.com/rcliao/sql-unit-test/db"
 	"github.com/rcliao/sql-unit-test/parser"
-	"github.com/rcliao/sql-unit-test/runner"
 )
 
 func main() {
-	db := getDB()
-	runner := runner.NewMySQLRunner(db)
+	sqlDB := getDBForSolution()
 
 	solutionContent, err := ioutil.ReadFile("./solution.sql")
 	if err != nil {
@@ -25,18 +24,18 @@ func main() {
 	statements := parser.ParseSQL(string(solutionContent), "#")
 	var solution = make(map[string][]map[string]string)
 	for i, statement := range statements {
-		result, err := runner.Query(statement.Text)
+		result, err := db.Query(sqlDB, statement.Text)
 		if err != nil {
 			panic(err)
 		}
-		solution[strconv.Itoa(i+1)] = result
+		solution[strconv.Itoa(i+1)] = result.Content
 	}
 	solutionJSON, _ := json.Marshal(solution)
 	err = ioutil.WriteFile("./testcase.json", solutionJSON, 0644)
 	fmt.Printf("%+v", solution)
 }
 
-func getDB() *sql.DB {
+func getDBForSolution() *sql.DB {
 	// TODO: generate a random DB string
 	defaultProtocol := "tcp"
 	defaultPort := "3306"

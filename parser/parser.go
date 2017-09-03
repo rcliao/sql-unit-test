@@ -96,12 +96,26 @@ An usual test cases may be defined as below:
 }
 ```
 */
-func ParseTestCases(content string) (map[string][]map[string]string, error) {
-	result := map[string][]map[string]string{}
+func ParseTestCases(content string) ([]tester.TestCase, error) {
+	result := []tester.TestCase{}
+
+	var rawTestCases map[string][]map[string]string
+
 	decoder := json.NewDecoder(strings.NewReader(content))
-	if err := decoder.Decode(&result); err != nil {
+	if err := decoder.Decode(&rawTestCases); err != nil {
 		return result, err
 	}
+
+	for index, testcase := range rawTestCases {
+		result = append(
+			result,
+			tester.TestCase{
+				Index:   index,
+				Content: testcase,
+			},
+		)
+	}
+
 	return result, nil
 }
 

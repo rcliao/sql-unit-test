@@ -6,15 +6,9 @@ import (
 	"html/template"
 	"io/ioutil"
 	"net/http"
-	"os"
-	"strings"
-
-	// Using MySQL Driver here becasue the need of random database access
-	_ "github.com/go-sql-driver/mysql"
 
 	tester "github.com/rcliao/sql-unit-test"
 	"github.com/rcliao/sql-unit-test/parser"
-	"github.com/rcliao/sql-unit-test/runner"
 )
 
 var subjectFolder = "./subjects"
@@ -43,14 +37,12 @@ func Index() http.HandlerFunc {
 }
 
 // RunTest handles the query from the request param to test them
-func RunTest() http.HandlerFunc {
+func RunTest(sqlDB *sql.DB) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		db := getDB()
-		runner := runner.NewMySQLRunner(db)
-
 		submission := r.FormValue("statements")
 		subject := r.FormValue("subject")
 
+		// parsing content
 		testCasesContent, err := ioutil.ReadFile(subjectFolder + "/" + subject + "/testcase.json")
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -89,42 +81,13 @@ func RunTest() http.HandlerFunc {
 		}
 
 		statements := parser.ParseSQL(submission, "#")
-		failedTestCases, err := tester.Run(runner, statements, setupStatements, teardownStatements, testCases)
+		testResult, err := tester.Run(sqlDB, statements, setupStatements, teardownStatements, testCases)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
+			fmt.Println("Error while running test cases", err)
 			return
-		}
-		if len(statements) == 0 {
-			fmt.Fprintln(w, "No test provided.")
-			return
-		}
-		var result = "All test passes!"
-		if len(failedTestCases) > 0 {
-			result = strings.Join(failedTestCases, "\n")
 		}
 
-		fmt.Fprintln(w, result)
+		fmt.Fprintln(w, testResult)
 	})
-}
-
-func getDB() *sql.DB {
-	// TODO: generate a random DB string
-	defaultProtocol := "tcp"
-	defaultPort := "3306"
-	sqlDSN := fmt.Sprintf(
-		"%s:%s@%s(%s:%s)/%s",
-		os.Getenv("MYSQL_USERNAME"),
-		os.Getenv("MYSQL_PASSWORD"),
-		defaultProtocol,
-		os.Getenv("MYSQL_HOST"),
-		defaultPort,
-		os.Getenv("MYSQL_DB"),
-	)
-
-	db, err := sql.Open("mysql", sqlDSN)
-	if err != nil {
-		panic(err)
-	}
-
-	return db
 }
