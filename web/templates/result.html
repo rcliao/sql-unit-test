@@ -27,7 +27,14 @@
             <div class="feedback failed">
                 Test failed.
             </div>
-            <div class="test-cases">
+            <div>
+                Test Cases Layout:
+                <div class="btn-group layout-toggle" data-id="{{$element.Expected.Index}}">
+                    <button class="row active">Row</button>
+                    <button class="column">Column</button>
+                </div>
+            </div>
+            <div class="test-cases" id="test_cases_{{$element.Expected.Index}}">
                 <div class="expected">
                     <h3>Expected</h3>
                     <table>
@@ -83,5 +90,27 @@
 
     <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
     <script>hljs.initHighlightingOnLoad();</script>
+
+    <script>
+        var toggles = document.querySelectorAll('.layout-toggle');
+        for (var i = 0; i < toggles.length; i ++) {
+            var dataId = toggles[i].dataset.id;
+            var displayElement = document.querySelector('#test_cases_' + dataId);
+            var rowButton = toggles[i].querySelector('.row');
+            var columnButton = toggles[i].querySelector('.column');
+            rowButton.addEventListener('click', function() {
+                rowButton.classList.add('active');
+                columnButton.classList.remove('active');
+                displayElement.classList.add('row');
+                displayElement.classList.remove('column');
+            });
+            columnButton.addEventListener('click', function() {
+                rowButton.classList.remove('active');
+                columnButton.classList.add('active');
+                displayElement.classList.remove('row');
+                displayElement.classList.add('column');
+            });
+        }
+    </script>
 </body>
 </html>

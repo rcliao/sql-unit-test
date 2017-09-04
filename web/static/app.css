@@ -24,6 +24,7 @@ th, td {
 
 .result-container .feedback {
     padding: 1em;
+    margin-bottom: 1em;
 }
 .result-container .feedback.pass {
     background-color: #E8F5E9;
@@ -32,6 +33,32 @@ th, td {
 .result-container .feedback.failed {
     background-color: #FFEBEE;
     border-left: 5px solid #F44336;
+}
+
+.btn-group {
+    display: inline-block;
+    vertical-align: middle;
+}
+.btn-group button {
+    font-size: 16px;
+    background-color: #fff;
+    padding: 0.5em 1em;
+    float: left;
+    border: 1px solid #ccc;
+    border-right-width: 0;
+    border-radius: 0;
+}
+.btn-group button:first-child {
+    border-top-left-radius: 3px;
+    border-bottom-left-radius: 3px;
+}
+.btn-group button:last-child {
+    border-right-width: 1px;
+    border-top-right-radius: 3px;
+    border-bottom-right-radius: 3px;
+}
+.btn-group button.active {
+    color: #03A9F4;
 }
 
 .result-container {
@@ -44,6 +71,12 @@ th, td {
 
 .test-cases {
     display: flex;
+}
+.test-cases.row {
+    flex-direction: row;
+}
+.test-cases.column {
+    flex-direction: column;
 }
 
 .test-cases div {
