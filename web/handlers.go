@@ -7,11 +7,18 @@ import (
 	"io/ioutil"
 	"net/http"
 
+	"github.com/gorilla/mux"
 	tester "github.com/rcliao/sql-unit-test"
 	"github.com/rcliao/sql-unit-test/parser"
 )
 
 var subjectFolder = "./subjects"
+
+// Page is simple DTO to transfer multiple information to index.html
+type Page struct {
+	Instruction template.HTML
+	Subject     string
+}
 
 // Hello says hello
 func Hello() http.HandlerFunc {
@@ -28,11 +35,27 @@ func Static() http.Handler {
 // Index renders the index page for submitting SQL queries to test
 func Index() http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		vars := mux.Vars(r)
+		subject := vars["subject"]
+		instruction := template.HTML("")
+
+		if subject != "" {
+			content, err := ioutil.ReadFile(subjectFolder + "/" + subject + "/instruction.html")
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+			instruction = template.HTML(content)
+		}
+
 		t, err := template.ParseFiles("./web/templates/index.html")
 		if err != nil {
 			panic(err)
 		}
-		t.Execute(w, nil)
+		t.Execute(w, Page{
+			Instruction: instruction,
+			Subject:     subject,
+		})
 	})
 }
 

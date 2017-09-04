@@ -14,10 +14,13 @@
         <form action="/api/test" method="POST">
             <div>
                 <label for="subject">Subject</label>
-                <select id="subject" name="subject">
+                <select id="subject" name="subject" data-default="{{.Subject}}">
+                    <option value="lab-1">Lab 1</option>
                     <option value="exercise-1">Exercise 1</option>
                 </select>
             </div>
+
+            {{.Instruction}}
 
             <div>
                 <label for="statements">SQL Statements</label>
@@ -35,6 +38,14 @@
     <script>
         (function() {
             'use strict';
+            var subject = document.querySelector('#subject');
+            var defaultSubject = subject.dataset.default;
+            if (defaultSubject) {
+                subject.value = defaultSubject;
+            }
+            subject.addEventListener('change', function() {
+                window.location.replace('/' + subject.value);
+            });
 
             var form = document.querySelector('form');
             var textarea = document.querySelector('[name="statements"]');

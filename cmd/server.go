@@ -23,6 +23,7 @@ func main() {
 
 	r.HandleFunc("/hello", web.Hello()).Methods("GET")
 	r.HandleFunc("/", web.Index()).Methods("GET")
+	r.HandleFunc("/{subject}", web.Index()).Methods("GET")
 	r.HandleFunc("/api/test", web.RunTest(db)).Methods("POST")
 	r.PathPrefix("/static").Handler(web.Static())
 
