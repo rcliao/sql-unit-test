@@ -88,6 +88,10 @@ func RunTest(sqlDB *sql.DB) http.HandlerFunc {
 			return
 		}
 
-		fmt.Fprintln(w, testResult)
+		t, err := template.ParseFiles("./web/templates/result.html")
+		if err != nil {
+			panic(err)
+		}
+		t.Execute(w, testResult)
 	})
 }

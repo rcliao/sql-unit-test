@@ -7,39 +7,51 @@
     <link rel="stylesheet" href="/static/app.css">
 </head>
 <body>
-    <h1>SQL Unit Test</h1>
-    <form action="/api/test" method="POST">
-        <div>
-            <label for="subject">Subjects</label>
-            <select id="subject" name="subject">
-                <option value="exercise-1">Exercise 1</option>
-            </select>
-        </div>
+    <header>
+        <h1>SQL Unit Test</h1>
+    </header>
+    <main class="container">
+        <form action="/api/test" method="POST">
+            <div>
+                <label for="subject">Subject</label>
+                <select id="subject" name="subject">
+                    <option value="exercise-1">Exercise 1</option>
+                </select>
+            </div>
 
-        <div>
-            <label for="statements">SQL Statements</label>
-            <div id="statements"></div>
-            <textarea name="statements" cols="50" rows="20"></textarea>
-        </div>
+            <div>
+                <label for="statements">SQL Statements</label>
+                <div id="statements"></div>
+                <textarea name="statements"></textarea>
+            </div>
 
-        <footer class="actions">
-            <button class="btn">Submit</button>
-        </footer>
-    </form>
+            <footer class="actions">
+                <button class="btn">Submit</button>
+            </footer>
+        </form>
+    </main>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.2.8/ace.js" type="text/javascript" charset="utf-8"></script>
     <script>
         (function() {
             'use strict';
 
+            var form = document.querySelector('form');
             var textarea = document.querySelector('[name="statements"]');
             textarea.style.display = 'none';
             var editor = ace.edit("statements");
-            editor.setTheme("ace/theme/monokai");
+            editor.setValue(textarea.value);
             editor.getSession().setMode("ace/mode/mysql");
             editor.getSession().on('change', function(){
                 textarea.value = editor.getSession().getValue();
             });
+            editor.commands.addCommand({
+                name: "submit",
+                exec: function() {
+                    form.submit();
+                },
+                bindKey: {mac: "cmd-enter", win: "ctrl-enter"}
+            })
         })();
     </script>
 </body>

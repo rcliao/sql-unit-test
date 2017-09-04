@@ -2,6 +2,7 @@ package parser
 
 import (
 	"encoding/json"
+	"strconv"
 	"strings"
 	"unicode/utf8"
 
@@ -106,7 +107,9 @@ func ParseTestCases(content string) ([]tester.TestCase, error) {
 		return result, err
 	}
 
-	for index, testcase := range rawTestCases {
+	for i := 1; i <= len(rawTestCases); i++ {
+		index := strconv.Itoa(i)
+		testcase := rawTestCases[index]
 		result = append(
 			result,
 			tester.TestCase{

@@ -23,7 +23,6 @@ func Query(db *sql.DB, query string) (Table, error) {
 	}
 	// Result is your slice string.
 	rawResult := make([][]byte, len(columns))
-
 	dest := make([]interface{}, len(columns)) // A temporary interface{} slice
 	for i := range rawResult {
 		dest[i] = &rawResult[i] // Put pointers to each string in the interface slice
@@ -33,17 +32,15 @@ func Query(db *sql.DB, query string) (Table, error) {
 		if err != nil {
 			return result, err
 		}
-		for _, raw := range rawResult {
+		tableRow := map[string]string{}
+		for i, raw := range rawResult {
 			val := ""
 			if raw != nil {
 				val = string(raw)
 			}
-			tableRow := map[string]string{}
-			for _, col := range columns {
-				tableRow[col] = val
-			}
-			result.Content = append(result.Content, tableRow)
+			tableRow[columns[i]] = val
 		}
+		result.Content = append(result.Content, tableRow)
 	}
 
 	return result, nil

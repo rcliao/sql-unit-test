@@ -64,9 +64,9 @@ To run tests, `go run cmd/main.go`
 - [x] Define setup and teardown life cycle
 - [x] Add web interface for ease of distribution
 - [x] Use UUID (or some other random string) for database name for parallel testings
-- [ ] Improve the existing front end to have better style/experience
+- [x] Improve the existing front end to have better style/experience
     - [x] Add Code Editor
-    - [ ] Better feedback on fail test cases
+    - [x] Better feedback on fail test cases
 - [ ] Add control panel for defining new test cases
 - [x] Use dep to do dependency management
 

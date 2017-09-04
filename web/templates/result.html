@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Test Result</title>
+
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/default.min.css">
+    <link rel="stylesheet" href="/static/app.css">
+</head>
+<body>
+    <h1>Test Results</h1>
+    <main class="container">
+    {{range $index, $element := .}}
+        <div class="result-container">
+            <h2>Test Case #{{$element.Expected.Index}}</h2>
+
+            <div class="query">
+                <h3>Submitted Query</h3>
+                <pre><code class="sql">{{$element.Actual.Query}}</code></pre>
+            </div>
+
+            {{if $element.Pass}}
+            <div class="feedback pass">
+                Test pass!
+            </div>
+            {{else}}
+            <div class="feedback failed">
+                Test failed.
+            </div>
+            <div class="test-cases">
+                <div class="expected">
+                    <h3>Expected</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                {{range $key, $value := index $element.Expected.Content 0}}
+                                <th>{{$key}}</th>
+                                {{end}}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {{range $element.Expected.Content}}
+                            <tr>
+                                {{range $key, $value := .}}
+                                <td>{{$value}}</td>
+                                {{end}}
+                            </tr>
+                            {{end}}
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="actual">
+                    <h3>Actual</h3>
+                    {{if not $element.Actual.Content}}
+                    <p>No data</p>
+                    {{else}}
+                    <table>
+                        <thead>
+                            <tr>
+                                {{range $key, $value := index $element.Actual.Content 0}}
+                                <th>{{$key}}</th>
+                                {{end}}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {{range $element.Actual.Content}}
+                            <tr>
+                                {{range $key, $value := .}}
+                                <td>{{$value}}</td>
+                                {{end}}
+                            </tr>
+                            {{end}}
+                        </tbody>
+                    </table>
+                    {{end}}
+                </div>
+            </div>
+            {{end}}
+        </div>
+    {{end}}
+    </main>
+
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
+</body>
+</html>
