@@ -2,6 +2,11 @@ package db
 
 import "database/sql"
 
+// Queryable is interface to abstract the usage of Query between sql.DB and sql.Tx
+type Queryable interface {
+	Query(query string, args ...interface{}) (*sql.Rows, error)
+}
+
 // Table contains the MySQL Table result in map of string to string
 type Table struct {
 	// IDEA: probably think of a better way to do type comparison
@@ -10,7 +15,7 @@ type Table struct {
 }
 
 // Query a query and return the table
-func Query(db *sql.Tx, query string) (Table, error) {
+func Query(db Queryable, query string) (Table, error) {
 	result := Table{Query: query}
 
 	rows, err := db.Query(query)
