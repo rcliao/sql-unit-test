@@ -27,6 +27,17 @@ func Hello() http.HandlerFunc {
 	})
 }
 
+// HealthCheck returns the healthcheck for the critical resources
+func HealthCheck(sqlDB *sql.DB) http.HandlerFunc {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if err := sqlDB.Ping(); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+
+		fmt.Fprintln(w, "Healthy")
+	})
+}
+
 // Static serves the static assets (js & css)
 func Static() http.Handler {
 	return http.StripPrefix("/static", http.FileServer(http.Dir("./web/static")))

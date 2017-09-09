@@ -6,6 +6,8 @@ import (
 	"math/rand"
 	"reflect"
 
+	"github.com/pkg/errors"
+
 	"github.com/rcliao/sql-unit-test/db"
 )
 
@@ -45,26 +47,32 @@ type Config struct {
 // Run runs through a list of statements in the submission and compare to test cases
 func Run(sqlDB *sql.DB, statements, setupStatements, teardownStatements []Statement, testcases []TestCase) ([]TestResult, error) {
 	var testResult = []TestResult{}
-	// use UUID to create temp database
+	// use random 32 characters database
 	randomDatabaseName := getRandomString()
-	if _, err := sqlDB.Exec("CREATE DATABASE " + randomDatabaseName); err != nil {
-		fmt.Println(err)
-		return testResult, err
+
+	tx, err := sqlDB.Begin()
+	if err != nil {
+		return testResult, errors.Wrap(err, "Have issue starting transaction ")
 	}
-	if _, err := sqlDB.Exec("USE " + randomDatabaseName); err != nil {
-		fmt.Println(err)
-		return testResult, err
+	if _, err := tx.Exec("CREATE DATABASE " + randomDatabaseName); err != nil {
+		return testResult, errors.Wrap(err, "Have issue creating database "+randomDatabaseName)
+	}
+	if _, err := tx.Exec("USE " + randomDatabaseName); err != nil {
+		return testResult, errors.Wrap(err, "Have issue use random database")
 	}
 	defer func() {
-		if _, err := sqlDB.Exec("DROP DATABASE " + randomDatabaseName); err != nil {
-			fmt.Println(err)
+		if _, err := tx.Exec("DROP DATABASE " + randomDatabaseName); err != nil {
+			fmt.Println("Have issue dropping database", err)
+		}
+		if err := tx.Commit(); err != nil {
+			fmt.Println("Have issue commiting transaction", err)
 		}
 	}()
 
 	// Setup
 	for _, statement := range setupStatements {
-		if _, err := sqlDB.Exec(statement.Text); err != nil {
-			return testResult, err
+		if _, err := tx.Exec(statement.Text); err != nil {
+			return testResult, errors.Wrap(err, "Have issue running setup statements")
 		}
 	}
 
@@ -82,7 +90,7 @@ func Run(sqlDB *sql.DB, statements, setupStatements, teardownStatements []Statem
 		}
 		statement := statements[i]
 		// TODO: detect if statement is a query or update
-		table, err := db.Query(sqlDB, statement.Text)
+		table, err := db.Query(tx, statement.Text)
 		// Query has syntax error
 		if err != nil {
 			testResult = append(
@@ -119,8 +127,8 @@ func Run(sqlDB *sql.DB, statements, setupStatements, teardownStatements []Statem
 
 	// teardown
 	for _, statement := range teardownStatements {
-		if _, err := sqlDB.Exec(statement.Text); err != nil {
-			return testResult, err
+		if _, err := tx.Exec(statement.Text); err != nil {
+			return testResult, errors.Wrap(err, "Have issue running teardown statements")
 		}
 	}
 

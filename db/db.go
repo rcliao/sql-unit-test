@@ -10,7 +10,7 @@ type Table struct {
 }
 
 // Query a query and return the table
-func Query(db *sql.DB, query string) (Table, error) {
+func Query(db *sql.Tx, query string) (Table, error) {
 	result := Table{Query: query}
 
 	rows, err := db.Query(query)
