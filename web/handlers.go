@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"html/template"
 	"io/ioutil"
+	"log"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -118,7 +119,7 @@ func RunTest(sqlDB *sql.DB) http.HandlerFunc {
 		testResult, err := tester.Run(sqlDB, statements, setupStatements, teardownStatements, testCases)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
-			fmt.Println("Error while running test cases", err)
+			log.Println("Error while running test cases", err)
 			return
 		}
 

@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 
@@ -28,7 +29,7 @@ func main() {
 	r.HandleFunc("/api/test", web.RunTest(db)).Methods("POST")
 	r.PathPrefix("/static").Handler(web.Static())
 
-	fmt.Println("Running web server at port 8000")
+	log.Println("Running web server at port 8000")
 	http.ListenAndServe(":8000", r)
 }
 

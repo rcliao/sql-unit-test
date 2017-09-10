@@ -2,7 +2,7 @@ package tester
 
 import (
 	"database/sql"
-	"fmt"
+	"log"
 	"math/rand"
 	"reflect"
 
@@ -62,10 +62,10 @@ func Run(sqlDB *sql.DB, statements, setupStatements, teardownStatements []Statem
 	}
 	defer func() {
 		if _, err := tx.Exec("DROP DATABASE " + randomDatabaseName); err != nil {
-			fmt.Println("Have issue dropping database", err)
+			log.Println("Have issue dropping database", err)
 		}
 		if err := tx.Commit(); err != nil {
-			fmt.Println("Have issue commiting transaction", err)
+			log.Println("Have issue commiting transaction", err)
 		}
 	}()
 
