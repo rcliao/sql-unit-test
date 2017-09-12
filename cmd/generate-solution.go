@@ -9,6 +9,7 @@ import (
 	"strconv"
 
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/pkg/errors"
 
 	"github.com/rcliao/sql-unit-test/db"
 	"github.com/rcliao/sql-unit-test/parser"
@@ -26,7 +27,7 @@ func main() {
 	for i, statement := range statements {
 		result, err := db.Query(sqlDB, statement.Text)
 		if err != nil {
-			panic(err)
+			panic(errors.Wrap(err, "Error running statement\n"+statement.Text))
 		}
 		solution[strconv.Itoa(i+1)] = result.Content
 	}

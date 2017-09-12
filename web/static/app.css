@@ -3,6 +3,10 @@ html, body {
     font-family: monospace;
 }
 
+img {
+    max-width: 100%;
+}
+
 pre {
     background-color: #eee;
     padding: 1em 0.5em;
