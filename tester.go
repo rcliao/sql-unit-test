@@ -45,7 +45,12 @@ type Config struct {
 }
 
 // Run runs through a list of statements in the submission and compare to test cases
-func Run(sqlDB *sql.DB, statements, setupStatements, teardownStatements []Statement, testcases []TestCase) ([]TestResult, error) {
+func Run(
+	sqlDB *sql.DB,
+	statements, setupStatements, teardownStatements []Statement,
+	testcases []TestCase,
+	selectedQuestions []string,
+) ([]TestResult, error) {
 	var testResult = []TestResult{}
 	// use random 32 characters database
 	randomDatabaseName := getRandomString()
@@ -75,8 +80,12 @@ func Run(sqlDB *sql.DB, statements, setupStatements, teardownStatements []Statem
 			return testResult, errors.Wrap(err, "Have issue running setup statements")
 		}
 	}
+	i := 0
 
-	for i, expected := range testcases {
+	for _, expected := range testcases {
+		if !stringInSlice(expected.Index, selectedQuestions) && len(selectedQuestions) > 0 {
+			continue
+		}
 		if i >= len(statements) {
 			testResult = append(
 				testResult,
@@ -86,6 +95,7 @@ func Run(sqlDB *sql.DB, statements, setupStatements, teardownStatements []Statem
 					Pass:     false,
 				},
 			)
+			i++
 			continue
 		}
 		statement := statements[i]
@@ -102,6 +112,7 @@ func Run(sqlDB *sql.DB, statements, setupStatements, teardownStatements []Statem
 					Error:    err,
 				},
 			)
+			i++
 			continue
 		}
 		if !reflect.DeepEqual(table.Content, expected.Content) {
@@ -123,6 +134,7 @@ func Run(sqlDB *sql.DB, statements, setupStatements, teardownStatements []Statem
 				},
 			)
 		}
+		i++
 	}
 
 	// teardown
@@ -133,6 +145,15 @@ func Run(sqlDB *sql.DB, statements, setupStatements, teardownStatements []Statem
 	}
 
 	return testResult, nil
+}
+
+func stringInSlice(a string, list []string) bool {
+	for _, b := range list {
+		if b == a {
+			return true
+		}
+	}
+	return false
 }
 
 func getRandomString() string {

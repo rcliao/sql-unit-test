@@ -25,6 +25,17 @@
 
             {{.Instruction}}
 
+            <fieldset>
+                <legend>For specific question?</legend>
+                {{range $index, $element := .Testcases}}
+                <label for="testcase_{{$element.Index}}">
+                    <input name="question_numbers" id="testcase_{{$element.Index}}" type="checkbox" value="{{$element.Index}}">
+                    Question {{$element.Index}}
+                </label>
+                </br>
+                {{end}}
+            </fieldset>
+
             <div>
                 <label for="statements">SQL Statements</label>
                 <div id="statements"></div>

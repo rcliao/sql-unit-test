@@ -19,6 +19,7 @@ var subjectFolder = "./subjects"
 type Page struct {
 	Instruction template.HTML
 	Subject     string
+	Testcases   []tester.TestCase
 }
 
 // Hello says hello
@@ -49,6 +50,7 @@ func Index() http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		subject := vars["subject"]
+		testcases := []tester.TestCase{}
 		instruction := template.HTML("")
 
 		if subject != "" {
@@ -58,6 +60,16 @@ func Index() http.HandlerFunc {
 				return
 			}
 			instruction = template.HTML(content)
+			testcasesContent, err := ioutil.ReadFile(subjectFolder + "/" + subject + "/testcase.json")
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+			testcases, err = parser.ParseTestCases(string(testcasesContent))
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
 		}
 
 		t, err := template.ParseFiles("./web/templates/index.html")
@@ -67,6 +79,7 @@ func Index() http.HandlerFunc {
 		t.Execute(w, Page{
 			Instruction: instruction,
 			Subject:     subject,
+			Testcases:   testcases,
 		})
 	})
 }
@@ -76,6 +89,7 @@ func RunTest(sqlDB *sql.DB) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		submission := r.FormValue("statements")
 		subject := r.FormValue("subject")
+		selectedQuestions := r.Form["question_numbers"]
 
 		// parsing content
 		testCasesContent, err := ioutil.ReadFile(subjectFolder + "/" + subject + "/testcase.json")
@@ -116,7 +130,14 @@ func RunTest(sqlDB *sql.DB) http.HandlerFunc {
 		}
 
 		statements := parser.ParseSQL(submission, "#")
-		testResult, err := tester.Run(sqlDB, statements, setupStatements, teardownStatements, testCases)
+		testResult, err := tester.Run(
+			sqlDB,
+			statements,
+			setupStatements,
+			teardownStatements,
+			testCases,
+			selectedQuestions,
+		)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			log.Println("Error while running test cases", err)
