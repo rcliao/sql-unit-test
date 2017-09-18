@@ -91,6 +91,10 @@ func RunTest(sqlDB *sql.DB) http.HandlerFunc {
 		subject := r.FormValue("subject")
 		selectedQuestions := r.Form["question_numbers"]
 
+		defer func() {
+			log.Println("Executed SQL Unit Test", r)
+		}()
+
 		// parsing content
 		testCasesContent, err := ioutil.ReadFile(subjectFolder + "/" + subject + "/testcase.json")
 		if err != nil {
