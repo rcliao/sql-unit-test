@@ -26,6 +26,12 @@
             {{else}}
             <div class="feedback failed">
                 Test failed.
+                {{if $element.Error}}
+                <div>
+                    <h3>SQL Syntax Error</h3>
+                    <p>{{$element.Error}}</p>
+                </div>
+                {{end}}
             </div>
             <div>
                 Test Cases Layout:
