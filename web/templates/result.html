@@ -100,22 +100,24 @@
     <script>
         var toggles = document.querySelectorAll('.layout-toggle');
         for (var i = 0; i < toggles.length; i ++) {
-            var dataId = toggles[i].dataset.id;
-            var displayElement = document.querySelector('#test_cases_' + dataId);
-            var rowButton = toggles[i].querySelector('.row');
-            var columnButton = toggles[i].querySelector('.column');
-            rowButton.addEventListener('click', function() {
-                rowButton.classList.add('active');
-                columnButton.classList.remove('active');
-                displayElement.classList.add('row');
-                displayElement.classList.remove('column');
-            });
-            columnButton.addEventListener('click', function() {
-                rowButton.classList.remove('active');
-                columnButton.classList.add('active');
-                displayElement.classList.remove('row');
-                displayElement.classList.add('column');
-            });
+            (function(i){
+                var dataId = toggles[i].dataset.id;
+                var displayElement = document.querySelector('#test_cases_' + dataId);
+                var rowButton = toggles[i].querySelector('.row');
+                var columnButton = toggles[i].querySelector('.column');
+                rowButton.addEventListener('click', function() {
+                    rowButton.classList.add('active');
+                    columnButton.classList.remove('active');
+                    displayElement.classList.add('row');
+                    displayElement.classList.remove('column');
+                });
+                columnButton.addEventListener('click', function() {
+                    rowButton.classList.remove('active');
+                    columnButton.classList.add('active');
+                    displayElement.classList.remove('row');
+                    displayElement.classList.add('column');
+                });
+            })(i);
         }
     </script>
     <!-- Global Site Tag (gtag.js) - Google Analytics -->
