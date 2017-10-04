@@ -5,6 +5,7 @@ import (
 	"log"
 	"math/rand"
 	"reflect"
+	"strings"
 
 	"github.com/pkg/errors"
 
@@ -81,12 +82,36 @@ func Run(
 		}
 	}
 	i := 0
+	tables := []db.Table{}
+	errs := []error{}
+	var errAccumulator error
+
+	// execute all submitted statements and store them under tables
+	for _, statement := range statements {
+		if strings.Index(statement.Text, "SELECT") == 0 {
+			table, err2 := db.Query(tx, statement.Text)
+			tables = append(tables, table)
+			if errAccumulator != nil && err2 != nil {
+				err2 = errors.Wrap(err2, errAccumulator.Error())
+			}
+			if errAccumulator != nil && err2 == nil {
+				err2 = errAccumulator
+			}
+			errs = append(errs, err2)
+			errAccumulator = nil
+			continue
+		}
+		_, errAccumulator = tx.Exec(statement.Text)
+		if errAccumulator != nil {
+			errAccumulator = errors.Wrap(errAccumulator, "Query \""+statement.Text+"\" has syntax error.")
+		}
+	}
 
 	for _, expected := range testcases {
 		if !stringInSlice(expected.Index, selectedQuestions) && len(selectedQuestions) > 0 {
 			continue
 		}
-		if i >= len(statements) {
+		if i >= len(tables) {
 			testResult = append(
 				testResult,
 				TestResult{
@@ -98,9 +123,8 @@ func Run(
 			i++
 			continue
 		}
-		statement := statements[i]
-		// TODO: detect if statement is a query or update
-		table, err := db.Query(tx, statement.Text)
+		table := tables[i]
+		err := errs[i]
 		// Query has syntax error
 		if err != nil {
 			testResult = append(
