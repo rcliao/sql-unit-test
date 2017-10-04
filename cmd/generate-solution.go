@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"os"
 	"strconv"
+	"strings"
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/pkg/errors"
@@ -24,12 +25,21 @@ func main() {
 	}
 	statements := parser.ParseSQL(string(solutionContent), "#")
 	var solution = make(map[string][]map[string]string)
-	for i, statement := range statements {
-		result, err := db.Query(sqlDB, statement.Text)
-		if err != nil {
-			panic(errors.Wrap(err, "Error running statement\n"+statement.Text))
+	i := 0
+	for _, statement := range statements {
+		if strings.Index(strings.ToLower(statement.Text), "select") == 0 || strings.Index(strings.ToLower(statement.Text), "describe") == 0 {
+			result, err := db.Query(sqlDB, statement.Text)
+			if err != nil {
+				panic(errors.Wrap(err, "Error running statement\n"+statement.Text))
+			}
+			solution[strconv.Itoa(i+1)] = result.Content
+			i++
+		} else {
+			_, err := sqlDB.Exec(statement.Text)
+			if err != nil {
+				panic(errors.Wrap(err, "Error running statement\n"+statement.Text))
+			}
 		}
-		solution[strconv.Itoa(i+1)] = result.Content
 	}
 	solutionJSON, _ := json.Marshal(solution)
 	err = ioutil.WriteFile("./testcase.json", solutionJSON, 0644)

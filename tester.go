@@ -88,7 +88,8 @@ func Run(
 
 	// execute all submitted statements and store them under tables
 	for _, statement := range statements {
-		if strings.Index(statement.Text, "SELECT") == 0 {
+		// IDEA: it's probably better to create a list of READ query for reading check
+		if strings.Index(strings.ToLower(statement.Text), "select") == 0 || strings.Index(strings.ToLower(statement.Text), "describe") == 0 {
 			table, err2 := db.Query(tx, statement.Text)
 			tables = append(tables, table)
 			if errAccumulator != nil && err2 != nil {
