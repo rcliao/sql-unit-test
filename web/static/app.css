@@ -123,3 +123,8 @@ th, td {
     display: flex;
     justify-content: flex-end;
 }
+
+progress {
+    width: 100%;
+    height: 1em;
+}
