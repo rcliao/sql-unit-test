@@ -10,7 +10,14 @@
 <body>
     <h1>Test Results</h1>
     <main class="container">
-    {{range $index, $element := .}}
+    <div class="result-container">
+        <h3>Summary</h3>
+        <div class="feedback{{if eq .NumberOfPasses (len .Results)}} pass{{else}} failed{{end}}">
+            Pass: {{.NumberOfPasses}} / {{len .Results}}
+        </div>
+        <progress value="{{.NumberOfPasses}}" max="{{len .Results}}"></progress>
+    </div>
+    {{range $index, $element := .Results}}
         <div class="result-container">
             <h2>Test Case #{{$element.Expected.Index}}</h2>
 

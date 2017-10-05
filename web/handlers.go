@@ -22,6 +22,12 @@ type Page struct {
 	Testcases   []tester.TestCase
 }
 
+// SummaryPage is simple DTO to transfer info to result.html
+type SummaryPage struct {
+	Results        []tester.TestResult
+	NumberOfPasses int
+}
+
 // Hello says hello
 func Hello() http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -147,11 +153,21 @@ func RunTest(sqlDB *sql.DB) http.HandlerFunc {
 			log.Println("Error while running test cases", err)
 			return
 		}
+		numOfPasses := 0
+		for _, t := range testResult {
+			if t.Pass {
+				numOfPasses++
+			}
+		}
 
 		t, err := template.ParseFiles("./web/templates/result.html")
+		summaryDTO := SummaryPage{
+			Results:        testResult,
+			NumberOfPasses: numOfPasses,
+		}
 		if err != nil {
 			panic(err)
 		}
-		t.Execute(w, testResult)
+		t.Execute(w, summaryDTO)
 	})
 }
