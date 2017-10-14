@@ -102,7 +102,7 @@ func RunTest(sqlDB *sql.DB) http.HandlerFunc {
 		}()
 
 		// parsing content
-		testCasesContent, err := ioutil.ReadFile(subjectFolder + "/" + subject + "/testcase.json")
+		solutionContent, err := ioutil.ReadFile(subjectFolder + "/" + subject + "/solution.sql")
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -117,7 +117,7 @@ func RunTest(sqlDB *sql.DB) http.HandlerFunc {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		testCases, err := parser.ParseTestCases(string(testCasesContent))
+		solutions := parser.ParseSQL(string(solutionContent), "#")
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -145,7 +145,7 @@ func RunTest(sqlDB *sql.DB) http.HandlerFunc {
 			statements,
 			setupStatements,
 			teardownStatements,
-			testCases,
+			solutions,
 			selectedQuestions,
 		)
 		if err != nil {

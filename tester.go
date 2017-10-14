@@ -5,6 +5,7 @@ import (
 	"log"
 	"math/rand"
 	"reflect"
+	"strconv"
 	"strings"
 
 	"github.com/pkg/errors"
@@ -48,8 +49,7 @@ type Config struct {
 // Run runs through a list of statements in the submission and compare to test cases
 func Run(
 	sqlDB *sql.DB,
-	statements, setupStatements, teardownStatements []Statement,
-	testcases []TestCase,
+	statements, setupStatements, teardownStatements, solutions []Statement,
 	selectedQuestions []string,
 ) ([]TestResult, error) {
 	var testResult = []TestResult{}
@@ -82,31 +82,9 @@ func Run(
 		}
 	}
 	i := 0
-	tables := []db.Table{}
-	errs := []error{}
-	var errAccumulator error
-
-	// execute all submitted statements and store them under tables
-	for _, statement := range statements {
-		// IDEA: it's probably better to create a list of READ query for reading check
-		if strings.Index(strings.ToLower(statement.Text), "select") == 0 || strings.Index(strings.ToLower(statement.Text), "describe") == 0 {
-			table, err2 := db.Query(tx, statement.Text)
-			tables = append(tables, table)
-			if errAccumulator != nil && err2 != nil {
-				err2 = errors.Wrap(err2, errAccumulator.Error())
-			}
-			if errAccumulator != nil && err2 == nil {
-				err2 = errAccumulator
-			}
-			errs = append(errs, err2)
-			errAccumulator = nil
-			continue
-		}
-		_, errAccumulator = tx.Exec(statement.Text)
-		if errAccumulator != nil {
-			errAccumulator = errors.Wrap(errAccumulator, "Query \""+statement.Text+"\" has syntax error.")
-		}
-	}
+	tables, errs := executeStatements(tx, statements)
+	solutionTables, _ := executeStatements(tx, solutions)
+	testcases := convertTablesToTestCases(solutionTables)
 
 	for _, expected := range testcases {
 		if !stringInSlice(expected.Index, selectedQuestions) && len(selectedQuestions) > 0 {
@@ -170,6 +148,49 @@ func Run(
 	}
 
 	return testResult, nil
+}
+
+func executeStatements(tx db.Queryable, statements []Statement) ([]db.Table, []error) {
+	result := []db.Table{}
+	errs := []error{}
+	var errAccumulator error
+
+	// execute all submitted statements and store them under tables
+	for _, statement := range statements {
+		// IDEA: it's probably better to create a list of READ query for reading check
+		if strings.Index(strings.ToLower(statement.Text), "select") == 0 || strings.Index(strings.ToLower(statement.Text), "describe") == 0 {
+			table, err := db.Query(tx, statement.Text)
+			result = append(result, table)
+			if errAccumulator != nil && err != nil {
+				err = errors.Wrap(err, errAccumulator.Error())
+			}
+			if errAccumulator != nil && err == nil {
+				err = errAccumulator
+			}
+			errs = append(errs, err)
+			errAccumulator = nil
+			continue
+		}
+		_, errAccumulator = tx.Exec(statement.Text)
+		if errAccumulator != nil {
+			errAccumulator = errors.Wrap(errAccumulator, "Query \""+statement.Text+"\" has syntax error.")
+		}
+	}
+
+	return result, errs
+}
+
+func convertTablesToTestCases(tables []db.Table) []TestCase {
+	testcases := []TestCase{}
+	for i, t := range tables {
+		testcases = append(testcases, TestCase{
+			Index:    strconv.Itoa(i + 1),
+			Content:  t.Content,
+			Question: "",
+		})
+	}
+
+	return testcases
 }
 
 func stringInSlice(a string, list []string) bool {
