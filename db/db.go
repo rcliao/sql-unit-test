@@ -5,6 +5,7 @@ import "database/sql"
 // Queryable is interface to abstract the usage of Query between sql.DB and sql.Tx
 type Queryable interface {
 	Query(query string, args ...interface{}) (*sql.Rows, error)
+	Exec(query string, args ...interface{}) (sql.Result, error)
 }
 
 // Table contains the MySQL Table result in map of string to string
