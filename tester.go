@@ -55,9 +55,9 @@ func Run(
 	var testResult = []TestResult{}
 
 	i := 0
-	tables, errs, err := executeStatements(sqlDB, setupStatements, teardownStatements, statements)
-	solutionTables, _, err := executeStatements(sqlDB, setupStatements, teardownStatements, solutions)
-	testcases := convertTablesToTestCases(solutionTables)
+	tables, errs, err := ExecuteStatements(sqlDB, setupStatements, teardownStatements, statements)
+	solutionTables, _, err := ExecuteStatements(sqlDB, setupStatements, teardownStatements, solutions)
+	testcases := ConvertTablesToTestCases(solutionTables)
 
 	if err != nil {
 		return testResult, err
@@ -120,7 +120,8 @@ func Run(
 	return testResult, nil
 }
 
-func executeStatements(sqlDB *sql.DB, setupStatements, teardownStatements, statements []Statement) ([]db.Table, []error, error) {
+// ExecuteStatements takes arguments to build a list of tables
+func ExecuteStatements(sqlDB *sql.DB, setupStatements, teardownStatements, statements []Statement) ([]db.Table, []error, error) {
 	result := []db.Table{}
 	errs := []error{}
 
@@ -188,7 +189,8 @@ func executeStatements(sqlDB *sql.DB, setupStatements, teardownStatements, state
 	return result, errs, nil
 }
 
-func convertTablesToTestCases(tables []db.Table) []TestCase {
+// ConvertTablesToTestCases takes table content and convert it into TestCases
+func ConvertTablesToTestCases(tables []db.Table) []TestCase {
 	testcases := []TestCase{}
 	for i, t := range tables {
 		testcases = append(testcases, TestCase{

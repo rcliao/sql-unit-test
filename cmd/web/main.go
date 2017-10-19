@@ -23,9 +23,9 @@ func main() {
 	db := getDB()
 
 	r.HandleFunc("/hello", web.Hello()).Methods("GET")
-	r.HandleFunc("/", web.Index()).Methods("GET")
+	r.HandleFunc("/", web.Index(db)).Methods("GET")
 	r.HandleFunc("/health", web.HealthCheck(db)).Methods("GET")
-	r.HandleFunc("/{subject}", web.Index()).Methods("GET")
+	r.HandleFunc("/{subject}", web.Index(db)).Methods("GET")
 	r.HandleFunc("/api/test", web.RunTest(db)).Methods("POST")
 	r.PathPrefix("/static").Handler(web.Static())
 

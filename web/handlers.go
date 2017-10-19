@@ -14,12 +14,13 @@ import (
 )
 
 var subjectFolder = "./subjects"
+var solutionCache = make(map[string][]tester.TestCase)
 
 // Page is simple DTO to transfer multiple information to index.html
 type Page struct {
 	Instruction template.HTML
 	Subject     string
-	Testcases   []tester.TestCase
+	TestCases   []tester.TestCase
 }
 
 // SummaryPage is simple DTO to transfer info to result.html
@@ -52,10 +53,13 @@ func Static() http.Handler {
 }
 
 // Index renders the index page for submitting SQL queries to test
-func Index() http.HandlerFunc {
+func Index(sqlDB *sql.DB) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		subject := vars["subject"]
+		if subject == "" {
+			subject = "exercise-1"
+		}
 		testcases := []tester.TestCase{}
 		instruction := template.HTML("")
 
@@ -66,15 +70,52 @@ func Index() http.HandlerFunc {
 				return
 			}
 			instruction = template.HTML(content)
-			testcasesContent, err := ioutil.ReadFile(subjectFolder + "/" + subject + "/testcase.json")
+			solutionContent, err := ioutil.ReadFile(subjectFolder + "/" + subject + "/solution.sql")
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
-			testcases, err = parser.ParseTestCases(string(testcasesContent))
+			solutions := parser.ParseSQL(string(solutionContent), "#")
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
+			}
+			if cache, okay := solutionCache[subject]; !okay {
+				setupContent, err := ioutil.ReadFile(subjectFolder + "/" + subject + "/setup.sql")
+				if err != nil {
+					http.Error(w, err.Error(), http.StatusInternalServerError)
+					return
+				}
+				teardownContent, err := ioutil.ReadFile(subjectFolder + "/" + subject + "/teardown.sql")
+				if err != nil {
+					http.Error(w, err.Error(), http.StatusInternalServerError)
+					return
+				}
+				var setupStatements = []tester.Statement{}
+				if string(setupContent) != "" {
+					setupStatements = parser.ParseSQL(string(setupContent), "#")
+					if err != nil {
+						http.Error(w, err.Error(), http.StatusInternalServerError)
+						return
+					}
+				}
+				var teardownStatements = []tester.Statement{}
+				if string(teardownContent) != "" {
+					teardownStatements = parser.ParseSQL(string(teardownContent), "#")
+					if err != nil {
+						http.Error(w, err.Error(), http.StatusInternalServerError)
+						return
+					}
+				}
+				tables, _, err := tester.ExecuteStatements(sqlDB, setupStatements, teardownStatements, solutions)
+				if err != nil {
+					fmt.Println(err)
+				}
+				fmt.Println(tables)
+				testcases = tester.ConvertTablesToTestCases(tables)
+				solutionCache[subject] = testcases
+			} else {
+				testcases = cache
 			}
 		}
 
@@ -85,7 +126,7 @@ func Index() http.HandlerFunc {
 		t.Execute(w, Page{
 			Instruction: instruction,
 			Subject:     subject,
-			Testcases:   testcases,
+			TestCases:   testcases,
 		})
 	})
 }

@@ -32,7 +32,7 @@
 
             <fieldset>
                 <legend>For specific question?</legend>
-                {{range $index, $element := .Testcases}}
+                {{range $index, $element := .TestCases}}
                 <label for="testcase_{{$element.Index}}">
                     <input name="question_numbers" id="testcase_{{$element.Index}}" type="checkbox" value="{{$element.Index}}">
                     Question {{$element.Index}}
