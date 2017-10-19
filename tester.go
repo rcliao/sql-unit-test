@@ -53,38 +53,15 @@ func Run(
 	selectedQuestions []string,
 ) ([]TestResult, error) {
 	var testResult = []TestResult{}
-	// use random 32 characters database
-	randomDatabaseName := getRandomString()
 
-	tx, err := sqlDB.Begin()
-	if err != nil {
-		return testResult, errors.Wrap(err, "Have issue starting transaction ")
-	}
-	if _, err := tx.Exec("CREATE DATABASE " + randomDatabaseName); err != nil {
-		return testResult, errors.Wrap(err, "Have issue creating database "+randomDatabaseName)
-	}
-	if _, err := tx.Exec("USE " + randomDatabaseName); err != nil {
-		return testResult, errors.Wrap(err, "Have issue use random database")
-	}
-	defer func() {
-		if _, err := tx.Exec("DROP DATABASE " + randomDatabaseName); err != nil {
-			log.Println("Have issue dropping database", err)
-		}
-		if err := tx.Commit(); err != nil {
-			log.Println("Have issue commiting transaction", err)
-		}
-	}()
-
-	// Setup
-	for _, statement := range setupStatements {
-		if _, err := tx.Exec(statement.Text); err != nil {
-			return testResult, errors.Wrap(err, "Have issue running setup statements")
-		}
-	}
 	i := 0
-	tables, errs := executeStatements(tx, statements)
-	solutionTables, _ := executeStatements(tx, solutions)
+	tables, errs, err := executeStatements(sqlDB, setupStatements, teardownStatements, statements)
+	solutionTables, _, err := executeStatements(sqlDB, setupStatements, teardownStatements, solutions)
 	testcases := convertTablesToTestCases(solutionTables)
+
+	if err != nil {
+		return testResult, err
+	}
 
 	for _, expected := range testcases {
 		if !stringInSlice(expected.Index, selectedQuestions) && len(selectedQuestions) > 0 {
@@ -140,19 +117,43 @@ func Run(
 		i++
 	}
 
-	// teardown
-	for _, statement := range teardownStatements {
-		if _, err := tx.Exec(statement.Text); err != nil {
-			return testResult, errors.Wrap(err, "Have issue running teardown statements")
-		}
-	}
-
 	return testResult, nil
 }
 
-func executeStatements(tx db.Queryable, statements []Statement) ([]db.Table, []error) {
+func executeStatements(sqlDB *sql.DB, setupStatements, teardownStatements, statements []Statement) ([]db.Table, []error, error) {
 	result := []db.Table{}
 	errs := []error{}
+
+	// use random 32 characters database
+	randomDatabaseName := getRandomString()
+
+	tx, err := sqlDB.Begin()
+	if err != nil {
+		return result, errs, errors.Wrap(err, "Have issue starting transaction ")
+	}
+
+	if _, err := tx.Exec("CREATE DATABASE " + randomDatabaseName); err != nil {
+		return result, errs, errors.Wrap(err, "Have issue creating database "+randomDatabaseName)
+	}
+	if _, err := tx.Exec("USE " + randomDatabaseName); err != nil {
+		return result, errs, errors.Wrap(err, "Have issue use random database")
+	}
+	defer func() {
+		if _, err := tx.Exec("DROP DATABASE " + randomDatabaseName); err != nil {
+			log.Println("Have issue dropping database", err)
+		}
+		if err := tx.Commit(); err != nil {
+			log.Println("Have issue commiting transaction", err)
+		}
+	}()
+
+	// Setup
+	for _, statement := range setupStatements {
+		if _, err := tx.Exec(statement.Text); err != nil {
+			return result, errs, errors.Wrap(err, "Have issue running setup statements")
+		}
+	}
+
 	var errAccumulator error
 
 	// execute all submitted statements and store them under tables
@@ -177,7 +178,14 @@ func executeStatements(tx db.Queryable, statements []Statement) ([]db.Table, []e
 		}
 	}
 
-	return result, errs
+	// teardown
+	for _, statement := range teardownStatements {
+		if _, err := tx.Exec(statement.Text); err != nil {
+			return result, errs, errors.Wrap(err, "Have issue running teardown statements")
+		}
+	}
+
+	return result, errs, nil
 }
 
 func convertTablesToTestCases(tables []db.Table) []TestCase {
