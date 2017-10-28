@@ -126,6 +126,44 @@
                 });
             })(i);
         }
+        var testcaseContainers = document.querySelectorAll('.test-cases');
+        for (var i = 0; i < testcaseContainers.length; i++) {
+            var expectedColumns = testcaseContainers[i].querySelector('.expected table thead > tr').children;
+            var actualTableHead = testcaseContainers[i].querySelector('.actual table thead > tr');
+            var actualColumns = (!actualTableHead) ? [] : actualTableHead.children;
+            for (var j = 0; j < expectedColumns.length; j ++) {
+                if (j >= actualColumns.length) {
+                    expectedColumns[j].classList.add('highlight');
+                    continue;
+                }
+                if (expectedColumns[j].innerText !== actualColumns[j].innerText) {
+                    expectedColumns[j].classList.add('highlight');
+                    actualColumns[j].classList.add('highlight');
+                }
+            }
+            var expectedRows = testcaseContainers[i].querySelectorAll('.expected table tbody > tr');
+            var actualRows = testcaseContainers[i].querySelectorAll('.actual table tbody > tr');
+            for (var j = 0; j < expectedRows.length; j ++) {
+                if (j >= actualRows.length) {
+                    for (var k = 0; k < expectedRows[j].children.length; k ++) {
+                        expectedRows[j].children[k].classList.add('highlight');
+                    }
+                    continue;
+                }
+                var expectedInnerColumns = expectedRows[j].children;
+                var actualInnerColumns = (!actualRows[j]) ? [] : actualRows[j].children;
+                for (var k = 0; k < expectedInnerColumns.length; k ++) {
+                    if (k >= actualInnerColumns.length) {
+                        expectedInnerColumns[k].classList.add('highlight');
+                        continue;
+                    }
+                    if (expectedInnerColumns[k].innerText !== actualInnerColumns[k].innerText) {
+                        expectedInnerColumns[k].classList.add('highlight');
+                        actualInnerColumns[k].classList.add('highlight');
+                    }
+                }
+            }
+        }
     </script>
     <!-- Global Site Tag (gtag.js) - Google Analytics -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=UA-106550245-1"></script>

@@ -1,5 +1,7 @@
 vendor/
 
+tags
+
 config.json
 testcase.json
 *.sql

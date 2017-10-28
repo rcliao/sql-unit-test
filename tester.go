@@ -16,6 +16,18 @@ import (
 var letterRunes = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
 var databaseNameSize = 32
 
+// DAO for database access object to define common behavior
+type DAO interface {
+	Query(query string) (Result, error)
+	Exec(query string) error
+}
+
+// Result represents what returns from DAO
+type Result struct {
+	Query   string
+	Content []map[string]string
+}
+
 // TestCase represents each test case used against the Table
 type TestCase struct {
 	Index    string
