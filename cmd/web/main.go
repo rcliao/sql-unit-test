@@ -8,6 +8,7 @@ import (
 	"os"
 
 	"github.com/gorilla/mux"
+	"github.com/rcliao/sql-unit-test/db"
 	"github.com/rcliao/sql-unit-test/web"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -20,13 +21,14 @@ test sql without installing CLI or its dependencies (e.g. MySQL)
 
 func main() {
 	r := mux.NewRouter()
-	db := getDB()
+	sqlDB := getDB()
+	dao := db.NewSQLDAO(sqlDB)
 
 	r.HandleFunc("/hello", web.Hello()).Methods("GET")
-	r.HandleFunc("/", web.Index(db)).Methods("GET")
-	r.HandleFunc("/health", web.HealthCheck(db)).Methods("GET")
-	r.HandleFunc("/{subject}", web.Index(db)).Methods("GET")
-	r.HandleFunc("/api/test", web.RunTest(db)).Methods("POST")
+	r.HandleFunc("/", web.Index(dao)).Methods("GET")
+	r.HandleFunc("/health", web.HealthCheck(sqlDB)).Methods("GET")
+	r.HandleFunc("/{subject}", web.Index(dao)).Methods("GET")
+	r.HandleFunc("/api/test", web.RunTest(dao)).Methods("POST")
 	r.PathPrefix("/static").Handler(web.Static())
 
 	log.Println("Running web server at port 8000")

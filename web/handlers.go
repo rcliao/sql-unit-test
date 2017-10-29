@@ -53,7 +53,7 @@ func Static() http.Handler {
 }
 
 // Index renders the index page for submitting SQL queries to test
-func Index(sqlDB *sql.DB) http.HandlerFunc {
+func Index(dao tester.DAO) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		subject := vars["subject"]
@@ -107,7 +107,7 @@ func Index(sqlDB *sql.DB) http.HandlerFunc {
 						return
 					}
 				}
-				tables, _, err := tester.ExecuteStatements(sqlDB, setupStatements, teardownStatements, solutions)
+				tables, _, err := dao.ExecuteStatements(setupStatements, teardownStatements, solutions)
 				if err != nil {
 					fmt.Println(err)
 				}
@@ -132,7 +132,7 @@ func Index(sqlDB *sql.DB) http.HandlerFunc {
 }
 
 // RunTest handles the query from the request param to test them
-func RunTest(sqlDB *sql.DB) http.HandlerFunc {
+func RunTest(dao tester.DAO) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		submission := r.FormValue("statements")
 		subject := r.FormValue("subject")
@@ -182,7 +182,7 @@ func RunTest(sqlDB *sql.DB) http.HandlerFunc {
 
 		statements := parser.ParseSQL(submission, "#")
 		testResult, err := tester.Run(
-			sqlDB,
+			dao,
 			statements,
 			setupStatements,
 			teardownStatements,
