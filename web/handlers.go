@@ -10,11 +10,23 @@ import (
 
 	"github.com/gorilla/mux"
 	tester "github.com/rcliao/sql-unit-test"
+	"github.com/rcliao/sql-unit-test/db"
 	"github.com/rcliao/sql-unit-test/parser"
 )
 
 var subjectFolder = "./subjects"
 var solutionCache = make(map[string][]tester.TestCase)
+var subjectTypes = map[string]string{
+	"homework-3": "mongo",
+}
+
+func getSubjectType(subject string) string {
+	t, okay := subjectTypes[subject]
+	if !okay {
+		return "sql"
+	}
+	return t
+}
 
 // Page is simple DTO to transfer multiple information to index.html
 type Page struct {
@@ -53,13 +65,14 @@ func Static() http.Handler {
 }
 
 // Index renders the index page for submitting SQL queries to test
-func Index(dao tester.DAO) http.HandlerFunc {
+func Index(factory *db.Factory) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		subject := vars["subject"]
 		if subject == "" {
 			subject = "exercise-1"
 		}
+		dao := factory.CreateDAO(getSubjectType(subject))
 		testcases := []tester.TestCase{}
 		instruction := template.HTML("")
 
@@ -132,10 +145,11 @@ func Index(dao tester.DAO) http.HandlerFunc {
 }
 
 // RunTest handles the query from the request param to test them
-func RunTest(dao tester.DAO) http.HandlerFunc {
+func RunTest(factory *db.Factory) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		submission := r.FormValue("statements")
 		subject := r.FormValue("subject")
+		dao := factory.CreateDAO(getSubjectType(subject))
 		selectedQuestions := r.Form["question_numbers"]
 
 		defer func() {
