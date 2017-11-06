@@ -172,7 +172,7 @@ func ExecuteStatements(sqlDB *sql.DB, setupStatements, teardownStatements, state
 	// execute all submitted statements and store them under tables
 	for _, statement := range statements {
 		// IDEA: it's probably better to create a list of READ query for reading check
-		if strings.Index(strings.ToLower(statement.Text), "select") == 0 || strings.Index(strings.ToLower(statement.Text), "describe") == 0 {
+		if strings.Index(strings.ToLower(statement.Text), "select") == 0 || strings.Index(strings.ToLower(statement.Text), "describe") == 0 || strings.Index(strings.ToLower(statement.Text), "show") == 0 {
 			table, err := db.Query(tx, statement.Text)
 			result = append(result, table)
 			if errAccumulator != nil && err != nil {
