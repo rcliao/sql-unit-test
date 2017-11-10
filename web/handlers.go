@@ -185,6 +185,14 @@ func RunTest(factory *db.Factory) http.HandlerFunc {
 				return
 			}
 		}
+		// hacking around the setup for now
+		if subject == "homework-3" {
+			setupStatements = []tester.Statement{
+				tester.Statement{
+					Text: subjectFolder + "/" + subject + "/primer-dataset.json",
+				},
+			}
+		}
 		var teardownStatements = []tester.Statement{}
 		if string(teardownContent) != "" {
 			teardownStatements = parser.ParseSQL(string(teardownContent), "#")

@@ -2,6 +2,7 @@ package db
 
 import (
 	"fmt"
+	"os/exec"
 	"strings"
 
 	mgo "gopkg.in/mgo.v2"
@@ -27,13 +28,27 @@ func (m *MongoDAO) ExecuteStatements(setupStatements, teardownStatements, statem
 
 	randomDatabaseName := getRandomString()
 
+	for _, statement := range setupStatements {
+		cmd := exec.Command("mongoimport", "--db", randomDatabaseName, "--collection", "restaurants", "--drop", "--file", statement.Text)
+		err := cmd.Run()
+		if err != nil {
+			fmt.Println("has error running setup statement", err)
+		}
+	}
+
 	for _, statement := range statements {
 		r := bson.M{}
 		statementResult := tester.Result{Query: statement.Text}
 		err := m.session.DB(randomDatabaseName).Run(bson.M{"eval": statement.Text}, &r)
 		if strings.Contains(statement.Text, "toArray()") {
 			errs = append(errs, err)
-			content := r["retval"].([]interface{})
+			contentRaw, okay := r["retval"]
+			if !okay {
+				m := map[string]string{}
+				statementResult.Content = append(statementResult.Content, m)
+				continue
+			}
+			content := contentRaw.([]interface{})
 			for _, record := range content {
 				recordContent := record.(bson.M)
 				m := map[string]string{}
