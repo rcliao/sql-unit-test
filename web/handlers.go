@@ -64,6 +64,7 @@ func HealthCheck(sqlDB *sql.DB, session *mgo.Session) http.HandlerFunc {
 				errors.Wrap(err, "MySQL ping failed").Error(),
 				http.StatusInternalServerError,
 			)
+			return
 		}
 		if err := session.Ping(); err != nil {
 			http.Error(
@@ -71,6 +72,7 @@ func HealthCheck(sqlDB *sql.DB, session *mgo.Session) http.HandlerFunc {
 				errors.Wrap(err, "MongoDB ping failed").Error(),
 				http.StatusInternalServerError,
 			)
+			return
 		}
 
 		fmt.Fprintln(w, "Healthy")
