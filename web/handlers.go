@@ -9,7 +9,10 @@ import (
 	"net/http"
 	"strings"
 
+	mgo "gopkg.in/mgo.v2"
+
 	"github.com/gorilla/mux"
+	"github.com/pkg/errors"
 	tester "github.com/rcliao/sql-unit-test"
 	"github.com/rcliao/sql-unit-test/db"
 	"github.com/rcliao/sql-unit-test/parser"
@@ -53,10 +56,21 @@ func Hello() http.HandlerFunc {
 }
 
 // HealthCheck returns the healthcheck for the critical resources
-func HealthCheck(sqlDB *sql.DB) http.HandlerFunc {
+func HealthCheck(sqlDB *sql.DB, session *mgo.Session) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if err := sqlDB.Ping(); err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			http.Error(
+				w,
+				errors.Wrap(err, "MySQL ping failed").Error(),
+				http.StatusInternalServerError,
+			)
+		}
+		if err := session.Ping(); err != nil {
+			http.Error(
+				w,
+				errors.Wrap(err, "MongoDB ping failed").Error(),
+				http.StatusInternalServerError,
+			)
 		}
 
 		fmt.Fprintln(w, "Healthy")

@@ -34,7 +34,7 @@ func main() {
 
 	r.HandleFunc("/hello", web.Hello()).Methods("GET")
 	r.HandleFunc("/", web.Index(factory)).Methods("GET")
-	r.HandleFunc("/health", web.HealthCheck(sqlDB)).Methods("GET")
+	r.HandleFunc("/health", web.HealthCheck(sqlDB, session)).Methods("GET")
 	r.HandleFunc("/{subject}", web.Index(factory)).Methods("GET")
 	r.HandleFunc("/api/test", web.RunTest(factory)).Methods("POST")
 	r.PathPrefix("/static").Handler(web.Static())
