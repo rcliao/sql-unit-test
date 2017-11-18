@@ -9,6 +9,7 @@ import (
 	mgo "gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 
+	"github.com/pkg/errors"
 	tester "github.com/rcliao/sql-unit-test"
 )
 
@@ -38,12 +39,20 @@ func (m *MongoDAO) ExecuteStatements(setupStatements, teardownStatements, statem
 		}
 	}
 
+	var cErr error
 	for _, statement := range statements {
 		r := bson.M{}
 		statementResult := tester.Result{Query: statement.Text}
 		err := m.session.DB(randomDatabaseName).Run(bson.M{"eval": statement.Text}, &r)
+		if err != nil {
+			if cErr != nil {
+				cErr = errors.Wrap(cErr, err.Error())
+			} else {
+				cErr = err
+			}
+		}
 		if strings.Contains(statement.Text, "count()") {
-			errs = append(errs, err)
+			errs = append(errs, cErr)
 			contentRaw, okay := r["retval"]
 			if !okay {
 				m := map[string]string{}
@@ -57,7 +66,7 @@ func (m *MongoDAO) ExecuteStatements(setupStatements, teardownStatements, statem
 			result = append(result, statementResult)
 		}
 		if strings.Contains(statement.Text, "aggregate") {
-			errs = append(errs, err)
+			errs = append(errs, cErr)
 			contentRaw, okay := r["retval"]
 			if !okay {
 				m := map[string]string{}
@@ -78,7 +87,7 @@ func (m *MongoDAO) ExecuteStatements(setupStatements, teardownStatements, statem
 			result = append(result, statementResult)
 		}
 		if strings.Contains(statement.Text, "toArray()") {
-			errs = append(errs, err)
+			errs = append(errs, cErr)
 			contentRaw, okay := r["retval"]
 			if !okay {
 				m := map[string]string{}
@@ -100,7 +109,7 @@ func (m *MongoDAO) ExecuteStatements(setupStatements, teardownStatements, statem
 		}
 	}
 	// cleanup
-	// m.session.DB(randomDatabaseName).Run(bson.M{"eval": "db.dropDatabase();"}, nil)
+	m.session.DB(randomDatabaseName).Run(bson.M{"eval": "db.dropDatabase();"}, nil)
 
 	return result, errs, nil
 }
