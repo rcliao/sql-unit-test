@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"strings"
 
 	"github.com/gorilla/mux"
 	tester "github.com/rcliao/sql-unit-test"
@@ -16,8 +17,11 @@ import (
 
 var subjectFolder = "./subjects"
 var solutionCache = make(map[string][]tester.TestCase)
+
+// TODO: convert the following to be more like different setup
 var subjectTypes = map[string]string{
 	"homework-3": "mongo",
+	"homework-4": "mongo",
 }
 
 func getSubjectType(subject string) string {
@@ -186,11 +190,9 @@ func RunTest(factory *db.Factory) http.HandlerFunc {
 			}
 		}
 		// hacking around the setup for now
-		if subject == "homework-3" {
-			setupStatements = []tester.Statement{
-				tester.Statement{
-					Text: subjectFolder + "/" + subject + "/primer-dataset.json",
-				},
+		if getSubjectType(subject) == "mongo" {
+			for i, statement := range setupStatements {
+				setupStatements[i].Text = strings.Replace(statement.Text, "{filePath}", subjectFolder+"/"+subject+"", -1)
 			}
 		}
 		var teardownStatements = []tester.Statement{}
