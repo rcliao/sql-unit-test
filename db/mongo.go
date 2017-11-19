@@ -54,9 +54,10 @@ func (m *MongoDAO) ExecuteStatements(setupStatements, teardownStatements, statem
 		if strings.Contains(statement.Text, "count()") {
 			errs = append(errs, cErr)
 			contentRaw, okay := r["retval"]
-			if !okay {
+			if !okay || cErr != nil {
 				m := map[string]string{}
 				statementResult.Content = append(statementResult.Content, m)
+				result = append(result, statementResult)
 				continue
 			}
 			content := contentRaw.(float64)
@@ -68,9 +69,10 @@ func (m *MongoDAO) ExecuteStatements(setupStatements, teardownStatements, statem
 		if strings.Contains(statement.Text, "aggregate") {
 			errs = append(errs, cErr)
 			contentRaw, okay := r["retval"]
-			if !okay {
+			if !okay || cErr != nil {
 				m := map[string]string{}
 				statementResult.Content = append(statementResult.Content, m)
+				result = append(result, statementResult)
 				continue
 			}
 			content := contentRaw.(bson.M)["_batch"].([]interface{})
@@ -89,9 +91,10 @@ func (m *MongoDAO) ExecuteStatements(setupStatements, teardownStatements, statem
 		if strings.Contains(statement.Text, "toArray()") {
 			errs = append(errs, cErr)
 			contentRaw, okay := r["retval"]
-			if !okay {
+			if !okay || cErr != nil {
 				m := map[string]string{}
 				statementResult.Content = append(statementResult.Content, m)
+				result = append(result, statementResult)
 				continue
 			}
 			content := contentRaw.([]interface{})
