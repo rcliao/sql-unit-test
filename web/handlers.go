@@ -23,8 +23,9 @@ var solutionCache = make(map[string][]tester.TestCase)
 
 // TODO: convert the following to be more like different setup
 var subjectTypes = map[string]string{
-	"homework-3": "mongo",
-	"homework-4": "mongo",
+	"homework-3":                       "mongo",
+	"homework-4":                       "mongo",
+	"a86d4236ccdf7bd67cfc00f11d5c2b3a": "mongo",
 }
 
 func getSubjectType(subject string) string {

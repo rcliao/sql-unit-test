@@ -86,6 +86,7 @@ func (m *MongoDAO) ExecuteStatements(setupStatements, teardownStatements, statem
 				}
 				statementResult.Content = append(statementResult.Content, m)
 			}
+			statementResult.Content = reverse(statementResult.Content)
 			result = append(result, statementResult)
 		}
 		if strings.Contains(statement.Text, "toArray()") {
@@ -115,4 +116,15 @@ func (m *MongoDAO) ExecuteStatements(setupStatements, teardownStatements, statem
 	m.session.DB(randomDatabaseName).Run(bson.M{"eval": "db.dropDatabase();"}, nil)
 
 	return result, errs, nil
+}
+
+func reverse(list []map[string]string) []map[string]string {
+	s := make([]map[string]string, len(list))
+	for i := 0; i < len(list); i++ {
+		s[i] = list[i]
+	}
+	for i, j := 0, len(s)-1; i < j; i, j = i+1, j-1 {
+		s[i], s[j] = s[j], s[i]
+	}
+	return s
 }
