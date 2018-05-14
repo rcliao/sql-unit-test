@@ -75,7 +75,10 @@ func (m *MongoDAO) ExecuteStatements(setupStatements, teardownStatements, statem
 				result = append(result, statementResult)
 				continue
 			}
-			content := contentRaw.(bson.M)["_batch"].([]interface{})
+			content, ok := contentRaw.(bson.M)["_batch"].([]interface{})
+			if !ok {
+				break
+			}
 			for _, record := range content {
 				recordContent := record.(bson.M)
 				m := map[string]string{}
